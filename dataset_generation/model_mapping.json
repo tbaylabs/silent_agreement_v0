@@ -1,0 +1,6 @@
+{
+    "gpt-4o-mini": {
+        "reasoning": false,
+        "api_path": "default"
+    }
+}
