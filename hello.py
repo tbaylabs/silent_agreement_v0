@@ -8,14 +8,14 @@ from inspect_ai.solver import generate
 def match_counter() -> Metric:
     """Count matches between generated answers and targets, and print model info."""
     def metric_func(scores: list[SampleScore]):
-        model = os.getenv('INSPECT_EVAL_MODEL', 'Not set')
-        print(f"Using model: {model}")
+        # model = os.getenv('INSPECT_EVAL_MODEL', 'Not set')
+        # print(f"Using model: {model}")
         
         matches = sum(1 for score in scores if score.score == 1.0)
         total = len(scores)
         
         return {
-            "model": model,
+            # "model": model,
             "matches": matches,
             "total": total,
             "match_rate": matches/total if total > 0 else 0
