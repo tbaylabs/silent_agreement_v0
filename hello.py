@@ -14,9 +14,9 @@ def hello_world():
             )
         ],
         solver=[generate()],
-        # scorer=exact(),
+        scorer=exact(),
     )
 
 # Print the model being used for evaluation
 print(f"INSPECT_EVAL_MODEL: {os.getenv('INSPECT_EVAL_MODEL', 'Not set')}")
-print(example_dataset())
+# print(example_dataset())
