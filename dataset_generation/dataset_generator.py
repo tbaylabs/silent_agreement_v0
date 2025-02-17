@@ -9,8 +9,9 @@ def generate_all_datasets(version):
     Args:
         version (str): Either "v0" or "v1" to determine which options list to use
     """
-    # Load the options list file
-    with open('options_lists_v0.json', 'r', encoding='utf-8') as f:
+    # Load the appropriate options list file based on version
+    options_file = f'dataset_generation/options_lists/options_lists_{version}.json'
+    with open(options_file, 'r', encoding='utf-8') as f:
         options_lists = json.load(f)
     
     # Process each option set
