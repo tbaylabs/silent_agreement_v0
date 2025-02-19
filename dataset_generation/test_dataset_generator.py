@@ -1,7 +1,12 @@
 from dataset_generation.dataset_generator import generate_all_datasets, ExperimentCondition
 import json
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def test_dataset_generation():
+    logger.info("Starting dataset generation test")
     # Test with the model we know exists
     test_model = "gpt-4o-mini"
     
