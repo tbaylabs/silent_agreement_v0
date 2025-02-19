@@ -1,5 +1,6 @@
 import json
 from inspect_ai import Task, task
+from inspect_ai.model import get_model
 from inspect_ai.solver import generate
 from typing import Union, List, Dict
 from inspect_ai.scorer import scorer, pattern, SampleScore, metric, Metric
@@ -41,7 +42,8 @@ def valid_answer_counts(valid_answers: list[str]) -> Metric:
                 # If an answer is extracted that isn't in valid_answers,
                 # you could choose to ignore it or handle it separately.
                 pass
-
+        print("HELLO")
+        print(get_model())
         return counts
 
     return metric_func
