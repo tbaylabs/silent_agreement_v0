@@ -37,14 +37,12 @@ def condition_scores() -> Metric:
         async def score_sample(state: TaskState, target: Target) -> Score:
             return Score(value=1)
             
-        # Process each condition's scores with multi_scorer
+        # Process each condition's scores directly
         results = {}
         for condition, samples in condition_scores.items():
-            scorers = [score_sample] * len(samples)
-            combined_scorer = multi_scorer(scorers, sum_score())
-            # Run the multi_scorer synchronously since we're in a sync context
-            score = asyncio.run(combined_scorer(None, None))
-            results[condition] = float(score.value)
+            # Simply count the number of samples for each condition
+            # since each sample's score would be 1
+            results[condition] = float(len(samples))
             
         return results
     return metric_func
