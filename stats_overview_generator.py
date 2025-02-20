@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any
 import json
 import numpy as np
 from scipy import stats
@@ -32,12 +32,27 @@ def calculate_stats(values: list[float]) -> Dict[str, float]:
     
     return result
 
-def calculate_one_sample_ttest(values: list[float]) -> Dict[str, float]:
-    """Calculate one-sample t-test against 0."""
+def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
+    """Calculate one-sample t-test against 0 with confidence intervals."""
+    mean = np.mean(values)
     t_stat, p_value = stats.ttest_1samp(values, 0)
+    
+    # Calculate 95% confidence interval
+    n = len(values)
+    if n > 1:
+        sd = np.std(values, ddof=1)
+        ci = stats.t.interval(confidence=0.95, df=n-1, loc=mean, scale=sd/np.sqrt(n))
+        lower, upper = round(ci[0], 3), round(ci[1], 3)
+    else:
+        lower, upper = None, None
+    
     return {
-        "t_stat": round(t_stat, 3),
-        "p_value": round(p_value, 3)
+        "mean": round(mean, 3),
+        "significant": p_value < 0.05,
+        "ci_95_lower": lower,
+        "ci_95_upper": upper,
+        "p_value": round(p_value, 3),
+        "t_stat": round(t_stat, 3)
     }
 
 def generate_stats_overview(options_results: Dict[str, Any]) -> None:
