@@ -148,7 +148,7 @@ def generate_all_datasets(
     # Load model mapping
     with open('dataset_generation/model_mapping.json', 'r', encoding='utf-8') as f:
         model_mappings = json.load(f)
-    
+    print(model_mappings)
     if model not in model_mappings:
         raise ValueError(f"Model {model} not found in model_mapping.json")
     
