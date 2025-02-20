@@ -34,10 +34,27 @@ def create_distribution_scorer(valid_options: Dict[str, List[str]], option_ids: 
         # Check if the sample's condition matches this scorer's condition
         sample_condition = getattr(target, "condition", None)
         if sample_condition != condition:
+            first_option = ids_to_use[0] if ids_to_use else ""
+            if '|' in first_option:
+                options_name, options_type = first_option.split('|', 1)
+            else:
+                options_name, options_type = first_option, "text"
+            options_id_meta = first_option if '|' in first_option else f"{first_option}|{options_type}"
+            options_list = valid_options[first_option] if first_option in valid_options else []
+            response_distribution = {answer: 0 for answer in options_list}
+            response_distribution["invalid"] = 0
+            metadata_obj = {
+                "options_id": options_id_meta,
+                "options_list": options_list,
+                "options_name": options_name,
+                "options_type": options_type,
+                "condition": condition,
+                "response_distribution": response_distribution
+            }
             return Score(
                 value=0.0,
                 answer=state.output.completion,
-                metadata={"response_distribution": {}},
+                metadata=metadata_obj,
                 explanation=f"Condition mismatch: expected '{condition}', got '{sample_condition}'"
             )
 
