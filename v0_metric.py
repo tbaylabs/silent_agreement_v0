@@ -3,6 +3,7 @@ from typing import Dict
 import json
 from group_results_generator import group_results_generator
 from options_results_generator import generate_options_results
+from stats_overview_generator import generate_stats_overview
 
 @metric 
 def condition_scores() -> Metric:
