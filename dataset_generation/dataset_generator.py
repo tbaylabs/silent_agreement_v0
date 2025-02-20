@@ -148,11 +148,11 @@ def generate_all_datasets(
     # Load model mapping
     with open('dataset_generation/model_mapping.json', 'r', encoding='utf-8') as f:
         model_mappings = json.load(f)
-    print(model_mappings)
-    if model not in model_mappings:
-        raise ValueError(f"Model {model} not found in model_mapping.json")
     
-    model_config = model_mappings[model]
+    if model.name not in model_mappings:
+        raise ValueError(f"Model {model.name} not found in model_mapping.json")
+    
+    model_config = model_mappings[model.name]
     
     # Load options lists
     options_file = f'dataset_generation/options_lists/options_lists_{version}.json'
