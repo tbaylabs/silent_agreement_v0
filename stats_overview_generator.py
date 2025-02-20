@@ -55,23 +55,24 @@ def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
         "t_stat": round(t_stat, 3)
     }
 
-def generate_stats_overview(options_results: Dict[str, Any]) -> None:
+def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate overview statistics across all options.
-    Writes results to stats_overview.json only if all data meets validity criteria.
+    Returns stats overview dict and writes results to stats_overview.json 
+    only if all data meets validity criteria.
     """
     # Validate data before proceeding
     for option_data in options_results.values():
         # Check if differences exists and is not empty
         if not option_data.get("differences"):
             print("Skipping stats overview generation: some options missing differences data")
-            return
+            return None
             
         # Check if all conditions have valid response counts
         for condition_data in option_data["conditions"].values():
             if condition_data["trial_block_stats"]["total_response_count"] < 1:
                 print("Skipping stats overview generation: some conditions have no responses")
-                return
+                return None
 
     # Initialize accumulators for each metric and condition
     metrics = ["top_prop_include_invalid", "top_prop_exclude_invalid"]
@@ -202,3 +203,5 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     # Write to file
     with open("stats_overview.json", "w", encoding='utf-8') as f:
         json.dump(stats_overview, f, indent=2, ensure_ascii=False)
+        
+    return stats_overview
