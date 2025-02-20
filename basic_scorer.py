@@ -2,14 +2,10 @@ from inspect_ai.scorer import (
     scorer, metric, Metric, Score, SampleScore,
     ScoreReducer, score_reducer, value_to_float
 )
-from inspect_ai.scorer._multi import multi_scorer
-from inspect_ai.solver._task_state import TaskState
-from inspect_ai.scorer._target import Target
+
 from typing import Dict, List
 import re
-import asyncio
 import json
-import os
 
 @score_reducer(name="sum")
 def sum_score() -> ScoreReducer:
@@ -27,6 +23,7 @@ def sum_score() -> ScoreReducer:
 def condition_scores() -> Metric:
     """Returns scores for each condition-option_id combination."""
     def metric_func(scores: list[SampleScore]) -> Dict[str, float]:
+        print(f"\nMetric called with {len(scores)} scores")
         # Load options lists
         options_file = "dataset_generation/options_lists/options_lists_v0.json"
         with open(options_file) as f:
@@ -55,8 +52,9 @@ def condition_scores() -> Metric:
             grouped_scores[key]["scores"].append(sample)
         
         # Print options list for each group
-        for key, group in grouped_scores.items():
-            print(f"Options for {key}: {group['options_list']}")
+        print("group score keys:")
+        for key in grouped_scores:
+            print(key)
         
         # Count samples for each combination
         results = {
