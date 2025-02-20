@@ -1,4 +1,4 @@
-from dataset_generation.dataset_generator import ExperimentCondition
+from dataset_generation.chat_message_builder import ExperimentCondition
 
 # Test configuration
 TEST_CONFIG = {
