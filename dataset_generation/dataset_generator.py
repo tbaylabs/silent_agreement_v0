@@ -144,6 +144,8 @@ def generate_all_datasets(
     """
     # Get model and its config
     model = get_model()
+    print(model.name)
+    # print(model.api.base_url)
     
     # Load model mapping
     with open('dataset_generation/model_mapping.json', 'r', encoding='utf-8') as f:
@@ -154,6 +156,8 @@ def generate_all_datasets(
     
     model_config = model_mappings[model.name]
     
+    print(model_config)
+
     # Load options lists
     options_file = f'dataset_generation/options_lists/options_lists_{version}.json'
     with open(options_file, 'r', encoding='utf-8') as f:
