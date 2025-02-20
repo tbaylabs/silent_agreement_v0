@@ -6,6 +6,7 @@ from inspect_ai.scorer import (
 from typing import Dict, List
 import re
 import json
+import os
 
 @score_reducer(name="sum")
 def sum_score() -> ScoreReducer:
@@ -51,10 +52,30 @@ def condition_scores() -> Metric:
             
             grouped_scores[key]["scores"].append(sample)
         
+        def group_results_generator(grouped_data: Dict[str, Dict]) -> None:
+            """Generate group_results.json from grouped scores data."""
+            output_data = {}
+            for key, group in grouped_data.items():
+                output_data[key] = {
+                    "option_id": group["option_id"],
+                    "options_list": group["options_list"],
+                    "option_name": group["option_name"],
+                    "option_type": group["option_type"],
+                    "condition": group["condition"],
+                    "score_count": len(group["scores"])
+                }
+            
+            # Write to file, overwriting if it exists
+            with open("group_results.json", "w") as f:
+                json.dump(output_data, f, indent=2)
+
         # Print options list for each group
         print("group score keys:")
         for key in grouped_scores:
             print(key)
+            
+        # Generate group results file
+        group_results_generator(grouped_scores)
         
         # Count samples for each combination
         results = {
