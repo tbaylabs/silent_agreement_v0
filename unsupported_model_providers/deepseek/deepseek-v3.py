@@ -9,7 +9,7 @@ from inspect_ai import Task, task
 from inspect_ai.model import get_model
 from inspect_ai.solver import generate
 from dataset_generation.dataset_generator import generate_all_datasets, ExperimentCondition
-from .model_registry import register_deepseek_models
+from unsupported_model_providers.deepseek.model_registry import register_deepseek_models
 
 # Register DeepSeek models
 register_deepseek_models()

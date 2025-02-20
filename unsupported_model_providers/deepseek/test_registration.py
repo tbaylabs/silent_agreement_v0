@@ -1,7 +1,7 @@
 """Test script to verify DeepSeek model registration."""
 
 from inspect_ai.model import get_model
-from .model_registry import register_deepseek_models
+from unsupported_model_providers.deepseek.model_registry import register_deepseek_models
 
 def test_registration():
     """Test that DeepSeek models can be registered and accessed."""
