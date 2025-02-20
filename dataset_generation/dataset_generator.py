@@ -100,13 +100,13 @@ def generate_coordination_dataset(
                 condition
             )
             
-            # Create comprehensive metadata
+            # Create comprehensive metadata - only include serializable data
             metadata = {
                 "option_id": option_id,
                 "option_name": option_name,
                 "option_type": option_type,
                 "condition": condition.value,
-                "model": model,
+                "model": model.name if hasattr(model, 'name') else str(model),
                 "model_role": model_role,
                 "is_reasoning": is_reasoning,
                 "is_compatible": is_compatible,
@@ -181,7 +181,7 @@ def generate_all_datasets(
         options=options,
         version=version,
         option_id=option_id,
-        model=model,
+        model=model.name,
         model_role=model_role,
         is_reasoning=is_reasoning,
         is_compatible=is_compatible
