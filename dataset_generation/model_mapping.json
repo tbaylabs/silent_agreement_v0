@@ -1,20 +1,16 @@
 {
     "openai/gpt-4o-mini": {
         "reasoning": false,
-        "creator": "Open AI" 
+        "creator": "Open AI"
     },
-
-    "deepseek/deepseek-v3" : {
-      "reasoning" : false,
-      "creator" : "DeepSeek"
-
+    "deepseek/deepseek-v3": {
+        "reasoning": false,
+        "creator": "DeepSeek"
     },
-
     "deepseek/deepseek-r1": {
-      "reasoning" : true,
-      "uses_simple_think_tags": true,
-      "creator" : "DeepSeek"
+        "reasoning": true,
+        "uses_simple_think_tags": true,
+        "creator": "DeepSeek"
     }
-
 }
 
