@@ -103,5 +103,5 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     }
     
     # Write to file
-    with open("stats_overview.json", "w") as f:
-        json.dump(stats_overview, f, indent=2)
+    with open("stats_overview.json", "w", encoding='utf-8') as f:
+        json.dump(stats_overview, f, indent=2, ensure_ascii=False)
