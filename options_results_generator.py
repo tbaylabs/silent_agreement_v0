@@ -1,7 +1,7 @@
 from typing import Dict, Any
 import json
 
-def generate_options_results(group_results: Dict[str, Any]) -> None:
+def generate_options_results(group_results: Dict[str, Any]) -> Dict[str, Any]:
     """
     Reorganize group results by option_id and condition.
     Writes results to results_by_option.json
@@ -95,3 +95,5 @@ def generate_options_results(group_results: Dict[str, Any]) -> None:
     # Write to file
     with open("results_by_option.json", "w") as f:
         json.dump(options_grouped, f, indent=2)
+    
+    return options_grouped
