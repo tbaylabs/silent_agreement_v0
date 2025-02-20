@@ -57,6 +57,12 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
         }
     }
     
+    # Initialize validity metrics collectors
+    validity_collectors = {
+        "total_count": {cond: [] for cond in conditions},
+        "valid_count": {cond: [] for cond in conditions}
+    }
+    
     totals = {
         "counts": {
             "total": {cond: 0 for cond in conditions},
@@ -89,11 +95,17 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
                         differences[metric][pair]
                     )
             
-            # Sum counts
+            # Sum counts and collect validity metrics
             for condition in conditions:
                 condition_data = option_data["conditions"][condition]["trial_block_stats"]
-                totals["counts"]["total"][condition] += condition_data["total_response_count"]
-                totals["counts"]["valid"][condition] += condition_data["valid_response_count"]
+                total_count = condition_data["total_response_count"]
+                valid_count = condition_data["valid_response_count"]
+                
+                totals["counts"]["total"][condition] += total_count
+                totals["counts"]["valid"][condition] += valid_count
+                
+                validity_collectors["total_count"][condition].append(total_count)
+                validity_collectors["valid_count"][condition].append(valid_count)
     
     # Calculate stats
     stats_overview = {
@@ -111,6 +123,17 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
             }
             for metric in metrics
         },
+        "validity_metrics": {
+            metric: {
+                f"{cond}_stats": {
+                    "mean": round(np.mean(validity_collectors[metric][cond]), 3),
+                    "highest": round(max(validity_collectors[metric][cond]), 3),
+                    "lowest": round(min(validity_collectors[metric][cond]), 3)
+                }
+                for cond in conditions
+            }
+            for metric in ["total_count", "valid_count"]
+        },
         "t_tests": {
             metric: {
                 pair: calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair])
@@ -122,16 +145,6 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
             "total_invalid_count": sum(totals["counts"]["total"][cond] - totals["counts"]["valid"][cond] for cond in conditions),
             "total_valid_count": sum(totals["counts"]["valid"][cond] for cond in conditions)
         }
-    }
-    
-    # Add count means to absolute_metrics (keep these as just means)
-    stats_overview["absolute_metrics"]["total_count"] = {
-        f"{cond}_mean": round(totals["counts"]["total"][cond] / option_count, 3)
-        for cond in conditions
-    }
-    stats_overview["absolute_metrics"]["valid_count"] = {
-        f"{cond}_mean": round(totals["counts"]["valid"][cond] / option_count, 3)
-        for cond in conditions
     }
     
     # Write to file
