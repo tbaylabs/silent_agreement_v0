@@ -29,18 +29,21 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     ]
     
     totals = {
-        "conditions": {
+        "absolute_metrics": {
             metric: {cond: 0.0 for cond in conditions}
             for metric in metrics
         },
-        "differences": {
+        "difference_metrics": {
             metric: {pair: 0.0 for pair in diff_pairs}
             for metric in metrics
+        },
+        "counts": {
+            "total": {cond: 0 for cond in conditions},
+            "valid": {cond: 0 for cond in conditions}
         }
     }
     
-    # Count valid options (those with all conditions present)
-    valid_option_count = 0
+    option_count = 0
     
     # Sum up values across all options
     for option_data in options_results.values():
@@ -49,37 +52,54 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
         
         # Only include options that have all conditions
         if all(cond in overview["top_prop_include_invalid"] for cond in conditions):
-            valid_option_count += 1
+            option_count += 1
             
-            # Sum condition values
+            # Sum metric values
             for metric in metrics:
                 for condition in conditions:
-                    totals["conditions"][metric][condition] += overview[metric][condition]
+                    totals["absolute_metrics"][metric][condition] += overview[metric][condition]
             
             # Sum difference values
             for metric in metrics:
                 for pair in diff_pairs:
-                    totals["differences"][metric][pair] += differences[metric][pair]
+                    totals["difference_metrics"][metric][pair] += differences[metric][pair]
+            
+            # Sum counts
+            for condition in conditions:
+                condition_data = option_data["conditions"][condition]["trial_block_stats"]
+                totals["counts"]["total"][condition] += condition_data["total_response_count"]
+                totals["counts"]["valid"][condition] += condition_data["valid_response_count"]
     
-    # Calculate means
+    # Calculate means and totals
     stats_overview = {
-        "conditions": {
+        "absolute_metrics": {
             metric: {
-                cond: round(totals["conditions"][metric][cond] / valid_option_count, 3)
+                cond: str(round(totals["absolute_metrics"][metric][condition] / option_count, 3)) + "_mean"
                 for cond in conditions
             }
             for metric in metrics
         },
-        "differences": {
+        "difference_metrics": {
             metric: {
-                pair: round(totals["differences"][metric][pair] / valid_option_count, 3)
+                pair: round(totals["difference_metrics"][metric][pair] / option_count, 3)
                 for pair in diff_pairs
             }
             for metric in metrics
         },
         "meta": {
-            "valid_option_count": valid_option_count
+            "total_invalid_count": sum(totals["counts"]["total"][cond] - totals["counts"]["valid"][cond] for cond in conditions),
+            "total_valid_count": sum(totals["counts"]["valid"][cond] for cond in conditions)
         }
+    }
+    
+    # Add count means to absolute_metrics
+    stats_overview["absolute_metrics"]["total_count_mean"] = {
+        cond: str(round(totals["counts"]["total"][cond] / option_count, 3)) + "_mean"
+        for cond in conditions
+    }
+    stats_overview["absolute_metrics"]["valid_count_mean"] = {
+        cond: str(round(totals["counts"]["valid"][cond] / option_count, 3)) + "_mean"
+        for cond in conditions
     }
     
     # Write to file
