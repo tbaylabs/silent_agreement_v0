@@ -97,7 +97,9 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     # Initialize validity metrics collectors
     validity_collectors = {
         "total_count": {cond: [] for cond in conditions},
-        "valid_count": {cond: [] for cond in conditions}
+        "valid_count": {
+            cond: {"values": [], "options_lists": []} for cond in conditions
+        }
     }
     
     totals = {
@@ -142,7 +144,8 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
                 totals["counts"]["valid"][condition] += valid_count
                 
                 validity_collectors["total_count"][condition].append(total_count)
-                validity_collectors["valid_count"][condition].append(valid_count)
+                validity_collectors["valid_count"][condition]["values"].append(valid_count)
+                validity_collectors["valid_count"][condition]["options_lists"].append(option_data["options_list"])
     
     # Calculate stats
     stats_overview = {
@@ -161,15 +164,27 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
             for metric in metrics
         },
         "validity_metrics": {
-            metric: {
+            "total_count": {
                 f"{cond}_stats": {
-                    "mean": round(np.mean(validity_collectors[metric][cond]), 3),
-                    "highest": round(max(validity_collectors[metric][cond]), 3),
-                    "lowest": round(min(validity_collectors[metric][cond]), 3)
+                    "mean": round(np.mean(validity_collectors["total_count"][cond]), 3),
+                    "highest": round(max(validity_collectors["total_count"][cond]), 3),
+                    "lowest": round(min(validity_collectors["total_count"][cond]), 3)
+                }
+                for cond in conditions
+            },
+            "valid_count": {
+                f"{cond}_stats": {
+                    "mean": round(np.mean(validity_collectors["valid_count"][cond]["values"]), 3),
+                    "highest": round(max(validity_collectors["valid_count"][cond]["values"]), 3),
+                    "lowest": round(min(validity_collectors["valid_count"][cond]["values"]), 3),
+                    "lowest_list": validity_collectors["valid_count"][cond]["options_lists"][
+                        validity_collectors["valid_count"][cond]["values"].index(
+                            min(validity_collectors["valid_count"][cond]["values"])
+                        )
+                    ]
                 }
                 for cond in conditions
             }
-            for metric in ["total_count", "valid_count"]
         },
         "t_tests": {
             metric: {
