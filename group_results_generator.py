@@ -12,10 +12,10 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> None:
         
         # Count responses
         for score in group["scores"]:
-            if not score["found_valid_answer"]:
+            if not score.found_valid_answer:
                 response_dist["invalid"] += 1
             else:
-                answer = score["answer"]
+                answer = score.answer
                 if answer not in options:
                     raise ValueError(
                         f"Found valid answer '{answer}' but it's not in options list {options}. "
