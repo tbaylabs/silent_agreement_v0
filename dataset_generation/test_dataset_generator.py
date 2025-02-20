@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 def test_dataset_generation():
     logger.info("Starting dataset generation test")
     # Test with the model we know exists
-    test_model = "gpt-4o-mini"
+    test_model = "openai/gpt-4o-mini"
     
     # Just test v0 for now
     versions = ["v0"]

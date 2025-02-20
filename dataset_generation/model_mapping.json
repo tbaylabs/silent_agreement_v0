@@ -1,18 +1,24 @@
 {
-    "openai/gpt-4o-mini": {
+    "gpt-4o-mini": {
         "reasoning": false,
         "creator": "Open AI"
     },
-    "deepseek/deepseek-chat": {
+    "deepseek-chat": {
         "aka": "deepseek-v3",
         "reasoning": false,
         "creator": "DeepSeek"
     },
-    "deepseek/deepseek-reasoner": {
+    "deepseek-reasoner": {
         "aka": "deepseek-r1",
         "reasoning": true,
         "uses_simple_think_tags": true,
         "creator": "DeepSeek"
-    }
+    },
+    "claude-3-5-haiku-20241022": {
+      "aka": "Claude 3.5 Haiku",
+      "reasoning": false,
+      "creator": "Anthropic"
+  }
+
 }
 
