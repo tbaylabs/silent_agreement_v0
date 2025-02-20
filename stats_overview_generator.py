@@ -4,8 +4,21 @@ import json
 def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     """
     Generate overview statistics across all options.
-    Writes results to stats_overview.json
+    Writes results to stats_overview.json only if all data meets validity criteria.
     """
+    # Validate data before proceeding
+    for option_data in options_results.values():
+        # Check if differences exists and is not empty
+        if not option_data.get("differences"):
+            print("Skipping stats overview generation: some options missing differences data")
+            return
+            
+        # Check if all conditions have valid response counts
+        for condition_data in option_data["conditions"].values():
+            if condition_data["trial_block_stats"]["total_response_count"] < 1:
+                print("Skipping stats overview generation: some conditions have no responses")
+                return
+
     # Initialize accumulators for each metric and condition
     metrics = ["top_prop_include_invalid", "top_prop_exclude_invalid"]
     conditions = ["control_suppress_cot", "coordinate_suppress_cot", "coordinate_elicit_cot"]
