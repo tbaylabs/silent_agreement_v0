@@ -63,8 +63,8 @@ def generate_coordination_dataset(
     model_role: str,
     is_reasoning: bool,
     is_compatible: bool,
-    conditions: List[ExperimentCondition] | None = None,
     options_lists: Dict[str, List[str]],
+    conditions: List[ExperimentCondition] | None = None,
     samples_per_option: int = 120,
 ) -> MemoryDataset:
     """
