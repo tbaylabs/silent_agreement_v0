@@ -32,27 +32,36 @@ def condition_scores() -> Metric:
         with open(options_file) as f:
             options_lists = json.load(f)
 
-        # Group scores by condition-option_id combination
-        grouped_scores: Dict[str, List[SampleScore]] = {}
+        # Group scores by condition-option_id combination with metadata
+        grouped_scores: Dict[str, Dict] = {}
         for sample in scores:
             option_id = sample.sample_metadata["option_id"]
             condition = sample.sample_metadata["condition"]
             key = f"{condition}-{option_id}"
             
             if key not in grouped_scores:
-                grouped_scores[key] = []
-            grouped_scores[key].append(sample)
+                # Parse option_id into name and type
+                option_name, option_type = option_id.split('|')
+                
+                grouped_scores[key] = {
+                    "option_id": option_id,
+                    "options_list": options_lists.get(option_id, []),
+                    "option_name": option_name,
+                    "option_type": option_type,
+                    "condition": condition,
+                    "scores": []
+                }
+            
+            grouped_scores[key]["scores"].append(sample)
         
         # Print options list for each group
-        for key, samples in grouped_scores.items():
-            option_id = samples[0].sample_metadata["option_id"]
-            if option_id in options_lists:
-                print(f"Options for {key}: {options_lists[option_id]}")
+        for key, group in grouped_scores.items():
+            print(f"Options for {key}: {group['options_list']}")
         
         # Count samples for each combination
         results = {
-            key: float(len(samples))
-            for key, samples in grouped_scores.items()
+            key: float(len(group["scores"]))
+            for key, group in grouped_scores.items()
         }
             
         return results
