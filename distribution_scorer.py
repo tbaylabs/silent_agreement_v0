@@ -49,7 +49,7 @@ def create_distribution_scorer(valid_options: Dict[str, List[str]], option_ids: 
                 "options_list": options_list,
                 "options_name": options_name,
                 "options_type": options_type,
-                "condition": condition,
+                "condition": str(condition),
                 "response_distribution": response_distribution
             }
             return Score(
@@ -96,7 +96,7 @@ def create_distribution_scorer(valid_options: Dict[str, List[str]], option_ids: 
             "options_list": options_list,
             "options_name": options_name,
             "options_type": options_type,
-            "condition": condition,
+            "condition": str(condition),
             "response_distribution": response_distribution
         }
         
