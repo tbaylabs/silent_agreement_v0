@@ -14,6 +14,7 @@ def answer_distribution() -> Metric:
         for sample in scores:
             total += sample.score.as_float()
             if sample.score.metadata and "response_distribution" in sample.score.metadata:
+                print(sample.score.metadata)
                 aggregated_distributions.append(sample.score.metadata["response_distribution"])
         import json
         with open("metadata_distributions.json", "w", encoding="utf-8") as f:
