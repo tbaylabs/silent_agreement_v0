@@ -4,10 +4,23 @@ import numpy as np
 from scipy import stats
 
 def calculate_stats(values: list[float]) -> Dict[str, float]:
-    """Calculate mean and standard deviation for a list of values."""
+    """Calculate mean, standard deviation, and 95% confidence interval."""
+    mean = np.mean(values)
+    sd = np.std(values, ddof=1)  # ddof=1 for sample standard deviation
+    n = len(values)
+    
+    # Calculate 95% confidence interval
+    ci = stats.t.interval(alpha=0.95, df=n-1, loc=mean, scale=sd/np.sqrt(n))
+    ci_range = ci[1] - ci[0]
+    
     return {
-        "mean": round(np.mean(values), 3),
-        "sd": round(np.std(values, ddof=1), 3)  # ddof=1 for sample standard deviation
+        "mean": round(mean, 3),
+        "sd": round(sd, 3),
+        "ci_95": {
+            "lower": round(ci[0], 3),
+            "upper": round(ci[1], 3),
+            "range": round(ci_range, 3)
+        }
     }
 
 def calculate_one_sample_ttest(values: list[float]) -> Dict[str, float]:
