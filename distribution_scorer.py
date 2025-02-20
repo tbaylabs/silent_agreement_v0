@@ -10,8 +10,14 @@ def answer_distribution() -> Metric:
     """
     def metric_func(scores: list[SampleScore]) -> float:
         total = 0.0
+        aggregated_distributions = []
         for sample in scores:
             total += sample.score.as_float()
+            if sample.score.metadata and "distribution" in sample.score.metadata:
+                aggregated_distributions.append(sample.score.metadata["distribution"])
+        import json
+        with open("metadata_distributions.json", "w", encoding="utf-8") as f:
+            json.dump(aggregated_distributions, f)
         return total
     
     return metric_func
