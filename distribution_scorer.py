@@ -5,19 +5,14 @@ import re
 @metric
 def answer_distribution() -> Metric:
     """
-    Metric that aggregates answer distributions across all samples.
-    Returns a list of dictionaries, each containing counts for valid and invalid answers.
+    Metric that sums the numeric score from each sample (1.0 for valid, 0.0 for invalid)
+    and returns the total.
     """
-    def metric_func(scores: list[SampleScore]) -> List[Dict[str, int]]:
-        # Initialize an empty list to store each sample's distribution
-        all_distributions = []
-        
-        # For each sample, extract its answer distribution
+    def metric_func(scores: list[SampleScore]) -> float:
+        total = 0.0
         for sample in scores:
-            if isinstance(sample.score.value, dict):
-                all_distributions.append(sample.score.value)
-                
-        return all_distributions
+            total += sample.score.as_float()
+        return total
     
     return metric_func
 
