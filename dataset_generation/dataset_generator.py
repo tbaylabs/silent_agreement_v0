@@ -118,11 +118,10 @@ def generate_coordination_dataset(
     model: str,
     model_role: str,
     is_reasoning: bool,
-    is_compatible: bool,
-    condition: ExperimentCondition
+    is_compatible: bool
 ) -> MemoryDataset:
     """
-    Generate a MemoryDataset with permutations of the given options.
+    Generate a MemoryDataset with permutations of the given options for all conditions.
     
     Args:
         options (list): List of strings/emojis to use as options
@@ -131,10 +130,9 @@ def generate_coordination_dataset(
         model_role (str): Role name for the model's responses
         is_reasoning (bool): Whether this is a reasoning model
         is_compatible (bool): Whether model is SA_v0 compatible
-        condition (ExperimentCondition): Which experimental condition
     
     Returns:
-        MemoryDataset: Dataset containing all permutations with appropriate prompts
+        MemoryDataset: Dataset containing all permutations with appropriate prompts for all conditions
     """
     if version == "v0":
         # Generate permutations and repeat 5 times
@@ -143,48 +141,49 @@ def generate_coordination_dataset(
     else:  # v1
         all_permutations = list(permutations(options))
     
-    # Create samples
+    # Parse option_id into components
+    option_name, option_type = option_id.split("|")
+    
+    # Create samples for all conditions
     samples = []
-    for idx, perm in enumerate(all_permutations, 1):
-        chat_messages = create_chat_messages(
-            perm,
-            model_role,
-            is_reasoning,
-            is_compatible,
-            condition
-        )
-        
-        # Parse option_id into components
-        option_name, option_type = option_id.split("|")
-        
-        # Create comprehensive metadata
-        metadata = {
-            "option_id": option_id,
-            "option_name": option_name,
-            "option_type": option_type,
-            "condition": condition.value,
-            "model": model,
-            "model_role": model_role,
-            "is_reasoning": is_reasoning,
-            "is_compatible": is_compatible,
-            "version": version,
-            "permutation_index": idx,
-        }
-        
-        # Create Sample object
-        sample = Sample(
-            input=chat_messages,
-            id=f"{option_name}-{condition.value}-{idx:03d}",
-            choices=list(perm),  # Add choices for potential future use
-            metadata=metadata
-        )
-        
-        samples.append(sample)
+    for condition in ExperimentCondition:
+        for idx, perm in enumerate(all_permutations, 1):
+            chat_messages = create_chat_messages(
+                perm,
+                model_role,
+                is_reasoning,
+                is_compatible,
+                condition
+            )
+            
+            # Create comprehensive metadata
+            metadata = {
+                "option_id": option_id,
+                "option_name": option_name,
+                "option_type": option_type,
+                "condition": condition.value,
+                "model": model,
+                "model_role": model_role,
+                "is_reasoning": is_reasoning,
+                "is_compatible": is_compatible,
+                "version": version,
+                "permutation_index": idx,
+            }
+            
+            # Create Sample object
+            sample = Sample(
+                input=chat_messages,
+                id=f"{option_name}-{condition.value}-{idx:03d}",
+                choices=list(perm),  # Add choices for potential future use
+                metadata=metadata
+            )
+            
+            samples.append(sample)
     
     # Create and return MemoryDataset
     return MemoryDataset(
         samples=samples,
-        name=f"{option_name}-{condition.value}",
+        name=f"{option_name}-all-conditions",
         location=None,
         shuffled=False
     )
@@ -192,8 +191,7 @@ def generate_coordination_dataset(
 
 def generate_all_datasets(
     version: str,
-    model: str,
-    condition: ExperimentCondition
+    model: str
 ) -> Tuple[MemoryDataset, Dict[str, Any]]:
     """
     Generate datasets for all option lists in the appropriate version file.
@@ -201,7 +199,6 @@ def generate_all_datasets(
     Args:
         version (str): Either "v0" or "v1" to determine which options list to use
         model (str): Model nickname that matches a key in model_mapping.json
-        condition (ExperimentCondition): Which experimental condition to generate
     """
     # Load model mapping
     with open('dataset_generation/model_mapping.json', 'r', encoding='utf-8') as f:
@@ -238,8 +235,7 @@ def generate_all_datasets(
         model=model,
         model_role=model_role,
         is_reasoning=is_reasoning,
-        is_compatible=is_compatible,
-        condition=condition
+        is_compatible=is_compatible
     )
     
     return dataset, model_config
