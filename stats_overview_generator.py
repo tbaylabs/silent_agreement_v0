@@ -10,6 +10,14 @@ def calculate_stats(values: list[float]) -> Dict[str, float]:
         "sd": round(np.std(values, ddof=1), 3)  # ddof=1 for sample standard deviation
     }
 
+def calculate_one_sample_ttest(values: list[float]) -> Dict[str, float]:
+    """Calculate one-sample t-test against 0."""
+    t_stat, p_value = stats.ttest_1samp(values, 0)
+    return {
+        "t_stat": round(t_stat, 3),
+        "p_value": round(p_value, 3)
+    }
+
 def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     """
     Generate overview statistics across all options.
@@ -99,6 +107,13 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
         "difference_metrics": {
             metric: {
                 f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair])
+                for pair in diff_pairs
+            }
+            for metric in metrics
+        },
+        "t_tests": {
+            metric: {
+                pair: calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair])
                 for pair in diff_pairs
             }
             for metric in metrics
