@@ -2,7 +2,7 @@ from inspect_ai.scorer import (
     scorer, metric, Metric, Score, SampleScore,
     ScoreReducer, score_reducer, value_to_float
 )
-from inspect_ai.scorer.reducer.multi import multi_scorer
+from inspect_ai.scorer._multi import multi_scorer
 from inspect_ai.solver._task_state import TaskState
 from inspect_ai.scorer._target import Target
 from typing import Dict, List
