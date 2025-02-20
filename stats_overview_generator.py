@@ -74,7 +74,7 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     stats_overview = {
         "absolute_metrics": {
             metric: {
-                f"{cond}_mean": str(round(totals["absolute_metrics"][metric][condition] / option_count, 3))
+                f"{cond}_mean": round(totals["absolute_metrics"][metric][condition] / option_count, 3)
                 for cond in conditions
             }
             for metric in metrics
@@ -94,11 +94,11 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     
     # Add count means to absolute_metrics
     stats_overview["absolute_metrics"]["total_count"] = {
-        f"{cond}_mean": str(round(totals["counts"]["total"][cond] / option_count, 3))
+        f"{cond}_mean": round(totals["counts"]["total"][cond] / option_count, 3)
         for cond in conditions
     }
     stats_overview["absolute_metrics"]["valid_count"] = {
-        f"{cond}_mean": str(round(totals["counts"]["valid"][cond] / option_count, 3))
+        f"{cond}_mean": round(totals["counts"]["valid"][cond] / option_count, 3)
         for cond in conditions
     }
     
