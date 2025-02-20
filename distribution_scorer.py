@@ -35,13 +35,15 @@ def create_distribution_scorer(valid_options: Dict[str, List[str]], option_ids: 
         # Check if the sample's condition matches this scorer's condition
         sample_condition = getattr(target, "condition", None)
         if sample_condition != condition:
-            first_option = ids_to_use[0] if ids_to_use else ""
-            if '|' in first_option:
-                options_name, options_type = first_option.split('|', 1)
+            option_id = getattr(target, "option_id", None)
+            if option_id is None:
+                option_id = ids_to_use[0] if ids_to_use else ""
+            if '|' in option_id:
+                options_name, options_type = option_id.split('|', 1)
             else:
-                options_name, options_type = first_option, "text"
-            options_id_meta = first_option if '|' in first_option else f"{first_option}|{options_type}"
-            options_list = valid_options[first_option] if first_option in valid_options else []
+                options_name, options_type = option_id, "text"
+            options_id_meta = option_id if '|' in option_id else f"{option_id}|{options_type}"
+            options_list = valid_options.get(option_id, [])
             response_distribution = {answer: 0 for answer in options_list}
             response_distribution["invalid"] = 0
             metadata_obj = {
@@ -64,13 +66,15 @@ def create_distribution_scorer(valid_options: Dict[str, List[str]], option_ids: 
         completion = state.output.completion
         
         # For metadata, use the first option in ids_to_use
-        first_option = ids_to_use[0] if ids_to_use else ""
-        if '|' in first_option:
-            options_name, options_type = first_option.split('|', 1)
+        option_id = getattr(target, "option_id", None)
+        if option_id is None:
+            option_id = ids_to_use[0] if ids_to_use else ""
+        if '|' in option_id:
+            options_name, options_type = option_id.split('|', 1)
         else:
-            options_name, options_type = first_option, "text"
-        options_id_meta = first_option if '|' in first_option else f"{first_option}|{options_type}"
-        options_list = valid_options[first_option] if first_option in valid_options else []
+            options_name, options_type = option_id, "text"
+        options_id_meta = option_id if '|' in option_id else f"{option_id}|{options_type}"
+        options_list = valid_options.get(option_id, [])
         
         # Build a response_distribution dict with keys from options_list plus an "invalid" counter
         response_distribution = {answer: 0 for answer in options_list}
