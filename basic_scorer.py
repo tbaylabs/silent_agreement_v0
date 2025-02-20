@@ -43,13 +43,11 @@ def condition_scores() -> Metric:
                 grouped_scores[key] = []
             grouped_scores[key].append(sample)
         
-        # Print options list for each unique option_id
-        seen_options = set()
-        for samples in grouped_scores.values():
+        # Print options list for each group
+        for key, samples in grouped_scores.items():
             option_id = samples[0].sample_metadata["option_id"]
-            if option_id not in seen_options and option_id in options_lists:
-                print(f"Options for {option_id}: {options_lists[option_id]}")
-                seen_options.add(option_id)
+            if option_id in options_lists:
+                print(f"Options for {key}: {options_lists[option_id]}")
         
         # Count samples for each combination
         results = {
