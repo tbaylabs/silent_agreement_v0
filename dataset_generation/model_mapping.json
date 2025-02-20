@@ -1,13 +1,16 @@
 {
-    "openai/gpt-4o-mini": {
+    "gpt-4o-mini": {
         "reasoning": false,
         "creator": "Open AI"
+        
     },
-    "deepseek/deepseek-v3": {
+    "deepseek-chat": {
+        "aka": "deepseek-v3",
         "reasoning": false,
         "creator": "DeepSeek"
     },
-    "deepseek/deepseek-r1": {
+    "deepseek-reasoner": {
+        "aka" : "deepseek-r1",
         "reasoning": true,
         "uses_simple_think_tags": true,
         "creator": "DeepSeek"
