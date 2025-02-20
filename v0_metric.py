@@ -45,7 +45,7 @@ def condition_scores() -> Metric:
             
         # Create directories
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        model_name = get_model()
+        model_name = "default"  # TODO: implement proper model name detection
         results_base_dir = os.path.join('results', model_name)
         timestamped_dir = os.path.join(results_base_dir, timestamp)
         recent_dir = 'recent_results'
