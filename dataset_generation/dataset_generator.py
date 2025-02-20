@@ -146,6 +146,7 @@ def generate_all_datasets(
     version: str,
     conditions: List[ExperimentCondition] | None = None,
     samples_per_option: int = 120,
+    option_ids: List[str] | None = None,
 ) -> Tuple[MemoryDataset, Dict[str, Any]]:
     """
     Generate datasets for all option lists in the appropriate version file.
@@ -192,7 +193,14 @@ def generate_all_datasets(
     # Get model role override if specified
     model_role = model_config.get("override_assistant_as_model_role_with", "assistant")
     
-    # For testing, just use the first option set
+    # If specific option_ids are provided, use only those
+    if option_ids:
+        filtered_options = {k: v for k, v in options_lists.items() if k in option_ids}
+        if not filtered_options:
+            raise ValueError(f"None of the provided option_ids {option_ids} found in options list")
+        options_lists = filtered_options
+
+    # Use first option set (or only remaining one if filtered)
     option_id = next(iter(options_lists))
     options = options_lists[option_id]
     dataset = generate_coordination_dataset(
