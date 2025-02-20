@@ -28,21 +28,14 @@ def generate_options_results(group_results: Dict[str, Any]) -> None:
         invalid_count = response_dist["invalid"]
         valid_responses = total_responses - invalid_count
         
-        # Find the most common valid response count
-        valid_counts = {opt: count for opt, count in response_dist.items() if opt != "invalid"}
-        top_count = max(valid_counts.values()) if valid_counts else 0
-        
-        # Calculate proportions
-        top_prop_include_invalid = top_count / total_responses if total_responses > 0 else 0
-        top_prop_exclude_invalid = top_count / valid_responses if valid_responses > 0 else 0
-        
         # Add the condition data
         options_grouped[option_id]["conditions"][condition] = {
             "response_distribution": response_dist,
-            "coordination_metrics": {
-                "top_prop_include_invalid": round(top_prop_include_invalid, 3),
-                "top_prop_exclude_invalid": round(top_prop_exclude_invalid, 3),
-                "valid_response_count": valid_responses
+            "trial_block_stats": {
+                "total_response_count": total_responses,
+                "valid_response_count": valid_responses,
+                "top_prop_include_invalid": round(max(response_dist.values()) / total_responses if total_responses > 0 else 0, 3),
+                "top_prop_exclude_invalid": round(max(response_dist.values()) / valid_responses if valid_responses > 0 else 0, 3)
             }
         }
     
