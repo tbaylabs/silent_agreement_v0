@@ -12,7 +12,7 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> None:
         
         # Count responses
         for score in group["scores"]:
-            if not score.found_valid_answer:
+            if score.value == 0:
                 response_dist["invalid"] += 1
             else:
                 answer = score.answer
