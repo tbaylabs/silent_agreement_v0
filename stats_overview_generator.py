@@ -1,5 +1,14 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 import json
+import numpy as np
+from scipy import stats
+
+def calculate_stats(values: list[float]) -> Dict[str, float]:
+    """Calculate mean and standard deviation for a list of values."""
+    return {
+        "mean": round(np.mean(values), 3),
+        "sd": round(np.std(values, ddof=1), 3)  # ddof=1 for sample standard deviation
+    }
 
 def generate_stats_overview(options_results: Dict[str, Any]) -> None:
     """
@@ -28,15 +37,19 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
         "coordinate_elicit_cot_vs_suppress_cot"
     ]
     
-    totals = {
+    # Initialize data collectors for calculating SDs
+    value_collectors = {
         "absolute_metrics": {
-            metric: {cond: 0.0 for cond in conditions}
+            metric: {cond: [] for cond in conditions}
             for metric in metrics
         },
         "difference_metrics": {
-            metric: {pair: 0.0 for pair in diff_pairs}
+            metric: {pair: [] for pair in diff_pairs}
             for metric in metrics
-        },
+        }
+    }
+    
+    totals = {
         "counts": {
             "total": {cond: 0 for cond in conditions},
             "valid": {cond: 0 for cond in conditions}
@@ -54,15 +67,19 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
         if all(cond in overview["top_prop_include_invalid"] for cond in conditions):
             option_count += 1
             
-            # Sum metric values
+            # Collect absolute metrics
             for metric in metrics:
                 for condition in conditions:
-                    totals["absolute_metrics"][metric][condition] += overview[metric][condition]
+                    value_collectors["absolute_metrics"][metric][condition].append(
+                        overview[metric][condition]
+                    )
             
-            # Sum difference values
+            # Collect difference metrics
             for metric in metrics:
                 for pair in diff_pairs:
-                    totals["difference_metrics"][metric][pair] += differences[metric][pair]
+                    value_collectors["difference_metrics"][metric][pair].append(
+                        differences[metric][pair]
+                    )
             
             # Sum counts
             for condition in conditions:
@@ -70,18 +87,18 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
                 totals["counts"]["total"][condition] += condition_data["total_response_count"]
                 totals["counts"]["valid"][condition] += condition_data["valid_response_count"]
     
-    # Calculate means and totals
+    # Calculate stats
     stats_overview = {
         "absolute_metrics": {
             metric: {
-                f"{cond}_mean": round(totals["absolute_metrics"][metric][condition] / option_count, 3)
+                f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond])
                 for cond in conditions
             }
             for metric in metrics
         },
         "difference_metrics": {
             metric: {
-                pair: round(totals["difference_metrics"][metric][pair] / option_count, 3)
+                f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair])
                 for pair in diff_pairs
             }
             for metric in metrics
@@ -92,7 +109,7 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> None:
         }
     }
     
-    # Add count means to absolute_metrics
+    # Add count means to absolute_metrics (keep these as just means)
     stats_overview["absolute_metrics"]["total_count"] = {
         f"{cond}_mean": round(totals["counts"]["total"][cond] / option_count, 3)
         for cond in conditions
