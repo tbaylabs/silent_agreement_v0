@@ -4,7 +4,7 @@ from inspect_ai.solver import generate
 from typing import Union, List, Dict
 
 from dataset_generation.dataset_generator import generate_all_datasets, ExperimentCondition
-from basic_scorer import create_answer_validator
+from v0_scorer import create_answer_validator
 # from distribution_scorer import create_distribution_scorer
 
 def load_v0_options() -> Dict[str, List[str]]:
