@@ -1,0 +1,10 @@
+[project]
+name = "custom_model_apis"
+version = "0.1.0"
+# Other metadata ...
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.entry-points.inspect_ai]
+deepseek = "custom_model_apis._registry"

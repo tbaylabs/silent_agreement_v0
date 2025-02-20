@@ -1,0 +1,2 @@
+[inspect_ai]
+deepseek = custom_model_apis._registry
