@@ -62,7 +62,8 @@ def generate_coordination_dataset(
     model: str,
     model_role: str,
     is_reasoning: bool,
-    is_compatible: bool
+    is_compatible: bool,
+    conditions: List[ExperimentCondition] | None = None,
 ) -> MemoryDataset:
     """
     Generate a MemoryDataset with permutations of the given options for all conditions.
@@ -74,6 +75,8 @@ def generate_coordination_dataset(
         model_role (str): Role name for the model's responses
         is_reasoning (bool): Whether this is a reasoning model
         is_compatible (bool): Whether model is SA_v0 compatible
+        conditions (List[ExperimentCondition] | None): Optional list of specific conditions to generate.
+            If None, generates all conditions.
     
     Returns:
         MemoryDataset: Dataset containing all permutations with appropriate prompts for all conditions
@@ -88,9 +91,10 @@ def generate_coordination_dataset(
     # Parse option_id into components
     option_name, option_type = option_id.split("|")
     
-    # Create samples for all conditions
+    # Create samples for specified conditions or all conditions if none specified
     samples = []
-    for condition in ExperimentCondition:
+    conditions_to_use = conditions if conditions is not None else list(ExperimentCondition)
+    for condition in conditions_to_use:
         for idx, perm in enumerate(all_permutations, 1):
             chat_messages = create_chat_messages(
                 perm,
@@ -135,12 +139,15 @@ def generate_coordination_dataset(
 
 def generate_all_datasets(
     version: str,
+    conditions: List[ExperimentCondition] | None = None,
 ) -> Tuple[MemoryDataset, Dict[str, Any]]:
     """
     Generate datasets for all option lists in the appropriate version file.
     
     Args:
         version (str): Either "v0" or "v1" to determine which options list to use
+        conditions (List[ExperimentCondition] | None): Optional list of specific conditions to generate.
+            If None, generates all conditions.
     """
     # Get model and its config
     model = get_model()
@@ -184,7 +191,8 @@ def generate_all_datasets(
         model=model.name,
         model_role=model_role,
         is_reasoning=is_reasoning,
-        is_compatible=is_compatible
+        is_compatible=is_compatible,
+        conditions=conditions
     )
     
     return dataset, model_config
