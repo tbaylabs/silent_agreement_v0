@@ -1,7 +1,7 @@
 from typing import Dict
 import json
 
-def group_results_generator(grouped_data: Dict[str, Dict]) -> None:
+def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
     """Generate group_results.json from grouped scores data."""
     output_data = {}
     for key, group in grouped_data.items():
@@ -38,3 +38,5 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> None:
     # Write to file, overwriting if it exists
     with open("group_results.json", "w") as f:
         json.dump(output_data, f, indent=2)
+    
+    return output_data

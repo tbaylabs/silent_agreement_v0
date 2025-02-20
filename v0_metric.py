@@ -40,12 +40,8 @@ def condition_scores() -> Metric:
         for key in grouped_scores:
             print(key)
             
-        # Generate group results file
-        group_results_generator(grouped_scores)
-        
-        # Load the generated group results and create options results
-        with open("group_results.json", "r") as f:
-            group_results = json.load(f)
+        # Generate group results and options results
+        group_results = group_results_generator(grouped_scores)
         generate_options_results(group_results)
         
         # Count samples for each combination
