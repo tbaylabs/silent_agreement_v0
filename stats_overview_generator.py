@@ -48,7 +48,7 @@ def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     
     return {
         "mean": round(mean, 3),
-        "significant": p_value < 0.05,
+        "significant": bool(p_value < 0.05),  # Convert numpy bool to Python bool
         "ci_95_lower": lower,
         "ci_95_upper": upper,
         "p_value": round(p_value, 3),
