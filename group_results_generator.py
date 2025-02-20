@@ -11,7 +11,8 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> None:
         response_dist["invalid"] = 0  # Add invalid category
         
         # Count responses
-        for score in group["scores"]:
+        for sample_score in group["scores"]:
+            score = sample_score.score
             if score.value == 0:
                 response_dist["invalid"] += 1
             else:
