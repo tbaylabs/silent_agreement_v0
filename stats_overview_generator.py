@@ -109,11 +109,11 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     # Initialize data collectors for calculating SDs
     value_collectors = {
         "absolute_metrics": {
-            metric: {cond: [] for cond in conditions}
+            metric: {cond: {"all": [], "symbol": [], "text": []} for cond in conditions}
             for metric in metrics
         },
         "difference_metrics": {
-            metric: {pair: [] for pair in diff_pairs}
+            metric: {pair: {"all": [], "symbol": [], "text": []} for pair in diff_pairs}
             for metric in metrics
         }
     }
@@ -144,19 +144,17 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
         if all(cond in overview["top_prop_include_invalid"] for cond in conditions):
             option_count += 1
             
-            # Collect absolute metrics
+            option_type = option_data["options_type"]  # "symbol" or "text"
             for metric in metrics:
                 for condition in conditions:
-                    value_collectors["absolute_metrics"][metric][condition].append(
-                        overview[metric][condition]
-                    )
-            
-            # Collect difference metrics
+                    val = overview[metric][condition]
+                    value_collectors["absolute_metrics"][metric][condition]["all"].append(val)
+                    value_collectors["absolute_metrics"][metric][condition][option_type].append(val)
             for metric in metrics:
                 for pair in diff_pairs:
-                    value_collectors["difference_metrics"][metric][pair].append(
-                        differences[metric][pair]
-                    )
+                    val = differences[metric][pair]
+                    value_collectors["difference_metrics"][metric][pair]["all"].append(val)
+                    value_collectors["difference_metrics"][metric][pair][option_type].append(val)
             
             # Sum counts and collect validity metrics
             for condition in conditions:
@@ -175,15 +173,17 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     stats_overview = {
         "absolute_metrics": {
             metric: {
-                f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond])
-                for cond in conditions
+                "all": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["all"]) for cond in conditions },
+                "symbol": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["symbol"]) for cond in conditions },
+                "text": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["text"]) for cond in conditions }
             }
             for metric in metrics
         },
         "difference_metrics": {
             metric: {
-                f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair])
-                for pair in diff_pairs
+                "all": { f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair]["all"]) for pair in diff_pairs },
+                "symbol": { f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair]["symbol"]) for pair in diff_pairs },
+                "text": { f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair]["text"]) for pair in diff_pairs }
             }
             for metric in metrics
         },
