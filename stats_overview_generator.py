@@ -33,24 +33,47 @@ def calculate_stats(values: list[float]) -> Dict[str, float]:
     return result
 
 def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
-    """Calculate one-sample t-test against 0 with confidence intervals."""
+    """
+    Perform a one-sided t-test for H₁: mean > 0.
+    Returns a one-sided lower bound (the 95% bound) alongside a one-sided p-value.
+    The result is considered significant if p_value < 0.05 and the lower bound is > 0.
+    """
     mean = np.mean(values)
-    t_stat, p_value = stats.ttest_1samp(values, 0)
-    
-    # Calculate 95% confidence interval
     n = len(values)
     if n > 1:
         sd = np.std(values, ddof=1)
-        ci = stats.t.interval(confidence=0.95, df=n-1, loc=mean, scale=sd/np.sqrt(n))
-        lower, upper = round(ci[0], 3), round(ci[1], 3)
+        se = sd / np.sqrt(n)
     else:
-        lower, upper = None, None
-    
+        se = 0
+
+    # compute t-statistic manually
+    t_stat = mean / se if se != 0 else 0
+
+    # one-sided p-value for H₁: mean > 0:
+    # If the mean is not above 0, we set p-value to 1.
+    if mean > 0 and se != 0:
+        p_value = stats.t.sf(t_stat, df=n-1) 
+    else:
+        p_value = 1.0
+
+    # For a one-sided 95% confidence interval (lower bound only):
+    # t.ppf(0.95, df) gives the appropriate t-critical value.
+    if n > 1 and se != 0:
+        t_crit = stats.t.ppf(0.95, df=n-1)
+        ci_lower = mean - t_crit * se
+    else:
+        ci_lower = None
+
+    # Since the test is one-sided (only interested if mean > 0), there's no finite upper bound.
+    ci_upper = None
+
+    significant = (p_value < 0.05) and (ci_lower is not None and ci_lower > 0)
+
     return {
         "mean": round(mean, 3),
-        "significant": bool(p_value < 0.05),  # Convert numpy bool to Python bool
-        "ci_95_lower": lower,
-        "ci_95_upper": upper,
+        "significant": significant,
+        "ci_95_lower": round(ci_lower, 3) if ci_lower is not None else None,
+        "ci_95_upper": ci_upper,
         "p_value": round(p_value, 3),
         "t_stat": round(t_stat, 3)
     }
