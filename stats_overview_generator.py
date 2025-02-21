@@ -225,6 +225,12 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     
     # Write to file
     with open("stats_overview.json", "w", encoding='utf-8') as f:
-        json.dump(stats_overview, f, indent=2, ensure_ascii=False)
+        json.dump(
+            stats_overview,
+            f,
+            indent=2,
+            ensure_ascii=False,
+            default=lambda o: o.item() if hasattr(o, "item") else o
+        )
         
     return stats_overview
