@@ -1,5 +1,5 @@
 import asyncio
-from inspect_ai._eval import score
+from inspect_ai._eval.score import score
 from inspect_ai.log import read_eval_log
 from v0_scorer import match_valid_answers
 import json
