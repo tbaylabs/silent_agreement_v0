@@ -1,7 +1,13 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+import re
 from inspect_ai.model import get_model, ChatMessage, ChatMessageUser, ChatMessageAssistant
 
-async def match_by_llm(completion: str, valid_answers: List[str], model_name: str) -> Tuple[str, List[ChatMessage]]:
+async def match_by_llm(
+    completion: str, 
+    valid_answers: List[str], 
+    model_name: str,
+    metadata: Dict = None
+) -> Tuple[str, List[ChatMessage], Dict]:
     """Use a model to grade a completion that didn't match the regex pattern.
     Returns tuple of (completion, match_log)"""
     options_string = "\n".join(f"- {option}" for option in valid_answers)
@@ -31,7 +37,13 @@ Respond with ONLY one of the following outputs:
 - invalid""")
     ]
     
+    metadata = metadata or {}
     extractor_model = get_model(model_name)
     response = await extractor_model.generate(messages)
-    match_log = messages + [ChatMessageAssistant(content=response.completion)]
-    return response.completion, match_log
+    match_log = messages + [response.message]
+    
+    # Check if response is "invalid" (with optional whitespace)
+    if re.match(r'^\s*invalid\s*$', response.completion, re.IGNORECASE):
+        metadata["verified_invalid_by_llm"] = True
+    
+    return response.completion, match_log, metadata

@@ -61,8 +61,9 @@ def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "an
             explanations.append(f"Found valid answer '{match.group(1)}' from {option_id}")
         else:
             # If no match found, try model grading
-            model_response, match_log = await match_by_llm(completion, valid_answers, extractor_model_name)
+            model_response, match_log, match_metadata = await match_by_llm(completion, valid_answers, extractor_model_name, metadata)
             metadata["match_log"] = match_log
+            metadata.update(match_metadata)
             
             # Check if model response matches any valid answer
             match = re.search(regex, model_response)
