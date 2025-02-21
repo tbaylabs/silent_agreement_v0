@@ -17,8 +17,8 @@ def condition_scores() -> Metric:
         with open(options_file) as f:
             options_lists = json.load(f)
 
-        # Check if we're in test mode
-        test_mode = scores[0].sample_metadata.get("test_mode", False) if scores else False
+        # Get expected samples per trial block from metadata or use default
+        expected_samples = scores[0].sample_metadata.get("samples_per_trial_block", 120) if scores else 120
         
         # Group scores by condition-option_id combination with metadata
         grouped_scores: Dict[str, Dict] = {}
@@ -41,34 +41,39 @@ def condition_scores() -> Metric:
                 }
             
             grouped_scores[key]["scores"].append(sample)
-                   
-        # Only create directories and save results if not in test mode
-        if not test_mode:
-            # Create directories
+
+        # Generate results regardless of validation
+        group_results = group_results_generator(grouped_scores)
+        options_results = generate_options_results(group_results)
+        stats_overview = generate_stats_overview(options_results)
+
+        # Validate that all groups have the expected number of samples
+        should_save_files = True
+        for group_key, group_data in grouped_scores.items():
+            if len(group_data["scores"]) != expected_samples:
+                print(f"Warning: Group {group_key} has {len(group_data['scores'])} samples, expected {expected_samples}")
+                should_save_files = False
+
+        # Only create directories and save files if validation passed
+        if should_save_files:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             model_name = get_model().name
             results_base_dir = os.path.join('results', model_name)
             timestamped_dir = os.path.join(results_base_dir, timestamp)
             recent_dir = 'recent_results'
 
-            # Create all necessary directories
+            # Create directories
             os.makedirs(timestamped_dir, exist_ok=True)
             os.makedirs(recent_dir, exist_ok=True)
 
-        # Generate results
-        group_results = group_results_generator(grouped_scores)
-        options_results = generate_options_results(group_results)
-        stats_overview = generate_stats_overview(options_results)
+            # Define files to save
+            files_data = {
+                'group_results.json': group_results,
+                'results_by_option.json': options_results,
+                'stats_overview.json': stats_overview
+            }
 
-        # Define files to save
-        files_data = {
-            'group_results.json': group_results,
-            'results_by_option.json': options_results,
-            'stats_overview.json': stats_overview
-        }
-
-        # Save all results files if not in test mode
-        if not test_mode:
+            # Save all results files
             for filename, data in files_data.items():
                 if data is not None:  # Only save if we have valid data
                     # Save to timestamped directory
