@@ -37,6 +37,8 @@ def match_valid_answers(test_mode: bool = False):
         completion = state.output.completion
         
         # Check completion against the correct set of valid answers
+        # Note: This regex will match valid options even without <answer> tags,
+        # as the tags are optional (marked by ? in the pattern)
         pattern = '|'.join(re.escape(ans) for ans in valid_answers)
         regex = rf'(?:<answer>\s*)?({pattern})(?:\s*</answer>)?'
         
