@@ -32,7 +32,7 @@ def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "an
         if not option_id or option_id not in options_lists:
             return Score(
                 value=0,
-                answer=None,
+                answer="fail",
                 explanation=f"Invalid or missing option_id in metadata: {option_id}"
             )
         
