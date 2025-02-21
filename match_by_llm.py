@@ -1,13 +1,14 @@
-from typing import List, Tuple, Dict
+from typing import Dict, List
 import re
-from inspect_ai.model import get_model, ChatMessage, ChatMessageUser, ChatMessageAssistant
+from inspect_ai.model import get_model, ChatMessage, ChatMessageUser
+from inspect_ai.scorer import Score
 
 async def match_by_llm(
     completion: str, 
     valid_answers: List[str], 
     model_name: str,
     metadata: Dict = None
-) -> Tuple[str, List[ChatMessage], Dict]:
+) -> Score:
     """Use a model to grade a completion that didn't match the regex pattern.
     Returns tuple of (completion, match_log)"""
     options_string = "\n".join(f"- {option}" for option in valid_answers)
@@ -38,12 +39,43 @@ Respond with ONLY one of the following outputs:
     ]
     
     metadata = metadata or {}
+    metadata["llm_match_attempted"] = True
+    metadata["extractor_model_name"] = model_name
+
     extractor_model = get_model(model_name)
     response = await extractor_model.generate(messages)
-    match_log = messages + [response.message]
-    
-    # Check if response is "invalid" (with optional whitespace)
+    metadata["match_log"] = messages + [response.message]
+
+    # Check if response is "invalid"
     if re.match(r'^\s*invalid\s*$', response.completion, re.IGNORECASE):
         metadata["verified_invalid_by_llm"] = True
-    
-    return response.completion, match_log, metadata
+        metadata["llm_match_success"] = False
+        return Score(
+            value=0,
+            answer=None,
+            explanation="LLM explicitly marked response as invalid",
+            metadata=metadata
+        )
+
+    # Check if response matches any valid answer
+    pattern = '|'.join(re.escape(ans) for ans in valid_answers)
+    regex = rf'^\s*({pattern})\s*$'
+    match = re.search(regex, response.completion)
+
+    if match:
+        metadata["llm_match_success"] = True
+        return Score(
+            value=1,
+            answer=match.group(1),
+            explanation=f"LLM extracted valid answer: '{match.group(1)}'",
+            metadata=metadata
+        )
+
+    # If we get here, the LLM response wasn't "invalid" or a valid answer
+    metadata["llm_match_success"] = False
+    return Score(
+        value=0,
+        answer=None,
+        explanation="LLM failed to extract a valid answer or confirm invalid",
+        metadata=metadata
+    )
