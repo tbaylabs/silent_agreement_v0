@@ -13,7 +13,7 @@ def load_v0_options() -> Dict[str, List[str]]:
         return json.load(f)
 
 @scorer(metrics=[sa_metrics()])
-def match_valid_answers(test_mode: bool = False, model_name: str = "claude-3-haiku-20240222"):
+def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "anthropic/claude-3-5-haiku-20241022"):
     """Creates a scorer that validates answers against the appropriate options list for each sample."""
     
     # Load options once when creating scorer
@@ -44,7 +44,7 @@ def match_valid_answers(test_mode: bool = False, model_name: str = "claude-3-hai
             "matched_by_rule": False,
             "matched_by_llm": False,
             "match_fail": False,
-            "model_name": None,
+            "extractor_model_name": None,
             "match_log": None
         }
 
@@ -61,14 +61,14 @@ def match_valid_answers(test_mode: bool = False, model_name: str = "claude-3-hai
             explanations.append(f"Found valid answer '{match.group(1)}' from {option_id}")
         else:
             # If no match found, try model grading
-            model_response, match_log = await match_by_llm(completion, valid_answers, model_name)
+            model_response, match_log = await match_by_llm(completion, valid_answers, extractor_model_name)
             metadata["match_log"] = match_log
             
             # Check if model response matches any valid answer
             match = re.search(regex, model_response)
             if match:
                 metadata["matched_by_llm"] = True
-                metadata["model_name"] = model_name
+                metadata["extractor_model_name"] = extractor_model_name
                 found_valid_answer = True
                 answer_found = match.group(1)
                 explanations.append(f"Model grading found valid answer '{match.group(1)}' from {option_id}")
