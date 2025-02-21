@@ -4,33 +4,14 @@ import numpy as np
 from scipy import stats
 
 def calculate_stats(values: list[float]) -> Dict[str, float]:
-    """Calculate mean, standard deviation, and 95% confidence interval."""
+    """Calculate mean and standard deviation."""
     mean = np.mean(values)
     sd = np.std(values, ddof=1) if len(values) > 1 else 0  # ddof=1 for sample standard deviation
-    n = len(values)
     
-    result = {
+    return {
         "mean": round(mean, 3),
         "sd": round(sd, 3),
     }
-    
-    # Only calculate CI if we have more than 1 sample
-    if n > 1:
-        ci = stats.t.interval(confidence=0.95, df=n-1, loc=mean, scale=sd/np.sqrt(n))
-        ci_range = ci[1] - ci[0]
-        result["ci_95"] = {
-            "lower": round(ci[0], 3),
-            "upper": round(ci[1], 3),
-            "range": round(ci_range, 3)
-        }
-    else:
-        result["ci_95"] = {
-            "lower": None,
-            "upper": None,
-            "range": None
-        }
-    
-    return result
 
 def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     """
@@ -71,7 +52,7 @@ def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
 
     return {
         "mean": round(mean, 3),
-        "significant": significant,
+        "one_tail_significant": significant,
         "one_tail_ci_95_lower": round(ci_lower, 3) if ci_lower is not None else None,
         "one_tail_p_value": f"{p_value:.4f}",
         "one_tail_t_stat": round(t_stat, 3)
