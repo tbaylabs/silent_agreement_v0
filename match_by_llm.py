@@ -49,7 +49,8 @@ Respond with ONLY one of the following outputs:
     # Check if response is "invalid"
     if re.match(r'^\s*invalid\s*$', response.completion, re.IGNORECASE):
         metadata["verified_invalid_by_llm"] = True
-        metadata["llm_match_success"] = False
+        metadata["verified_invalid_by_llm"] = True
+        metadata["verified_valid_by_llm"] = False
         return Score(
             value=0,
             answer=None,
@@ -63,7 +64,8 @@ Respond with ONLY one of the following outputs:
     match = re.search(regex, response.completion)
 
     if match:
-        metadata["llm_match_success"] = True
+        metadata["verified_valid_by_llm"] = True
+        metadata["verified_invalid_by_llm"] = False
         return Score(
             value=1,
             answer=match.group(1),
@@ -72,7 +74,8 @@ Respond with ONLY one of the following outputs:
         )
 
     # If we get here, the LLM response wasn't "invalid" or a valid answer
-    metadata["llm_match_success"] = False
+    metadata["verified_valid_by_llm"] = False
+    metadata["verified_invalid_by_llm"] = False
     return Score(
         value=0,
         answer=None,

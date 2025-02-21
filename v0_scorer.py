@@ -41,12 +41,12 @@ def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "an
         
         # Initialize metadata
         score_metadata = {
-            "rule_match_success": None,
+            "verified_valid_by_rule": None,
             "llm_match_attempted": None,
             "extractor_model_name": None,
-            "llm_match_success": None,
+            "verified_valid_by_llm": None,
+            "verified_invalid_by_llm": None,
             "match_log": None,
-
         }
         # Try rule-based matching first
         pattern = '|'.join(re.escape(ans) for ans in valid_answers)
@@ -54,7 +54,7 @@ def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "an
         match = re.search(regex, completion)
         
         if match:
-            score_metadata["rule_match_success"] = True
+            score_metadata["verified_valid_by_rule"] = True
             return Score(
                 value=1,
                 answer=match.group(1),
@@ -63,7 +63,7 @@ def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "an
             )
 
         # If no rule match, try LLM matching
-        score_metadata["rule_match_success"] = False
+        score_metadata["verified_valid_by_rule"] = False
         return await match_by_llm(
             completion, 
             valid_answers, 
