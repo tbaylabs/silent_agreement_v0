@@ -1,5 +1,8 @@
 from dataset_generation.chat_message_builder import ExperimentCondition
 
+# Global test mode flag
+TEST_MODE = True
+
 # Test configuration
 TEST_CONFIG = {
     "samples_per_option": 2,  # Reduced number for testing
