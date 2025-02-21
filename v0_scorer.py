@@ -84,7 +84,7 @@ def match_valid_answers(test_mode: bool = False, model_name: str = "claude-3-hai
 
         # Check completion against the correct set of valid answers
         pattern = '|'.join(re.escape(ans) for ans in valid_answers)
-        regex = rf'(?:<answer>\s*)?({pattern})(?:\s*</answer>)?'
+        regex = rf'^\s*({pattern})\s*$'
         
         match = re.search(regex, completion)
         
