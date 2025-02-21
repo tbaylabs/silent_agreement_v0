@@ -9,12 +9,15 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
         options = group["options_list"]
         response_dist = {option: 0 for option in options}
         response_dist["invalid"] = 0  # Add invalid category
+        response_dist["fail_subset_invalid"] = 0  # Add fail subcategory
         
         # Count responses
         for sample_score in group["scores"]:
             score = sample_score.score
             if score.value == 0:
                 response_dist["invalid"] += 1
+                if score.answer == "fail":
+                    response_dist["fail_subset_invalid"] += 1
             else:
                 answer = score.answer
                 if answer not in options:
