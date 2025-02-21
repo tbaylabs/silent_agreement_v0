@@ -1,15 +1,15 @@
 {
-  "numbers|symbol": [
-      "1",
-      "2",
-      "3",
-      "4"
+  "punctuation|symbol": [
+      "^",
+      "_",
+      "*",
+      "~"
   ],
-  "numbers|text": [
-      "one",
-      "two",
-      "three",
-      "four"
+  "punctuation|text": [
+      "caret",
+      "underscore",
+      "asterisk",
+      "tilde"
   ],
   "shapes_1|symbol": [
       "◯",

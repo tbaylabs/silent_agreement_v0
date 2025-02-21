@@ -65,7 +65,7 @@ def generate_coordination_dataset(
     is_compatible: bool,
     options_lists: Dict[str, List[str]],
     conditions: List[ExperimentCondition] | None = None,
-    samples_per_option: int = 120,
+    samples_per_trial_block: int = 120,
 ) -> MemoryDataset:
     """
     Generate a MemoryDataset with permutations of the given options for all conditions.
@@ -87,12 +87,12 @@ def generate_coordination_dataset(
         # Calculate number of repetitions needed
         base_permutations = list(permutations(options))
         num_base_permutations = len(base_permutations)
-        repetitions = (samples_per_option + num_base_permutations - 1) // num_base_permutations
+        repetitions = (samples_per_trial_block + num_base_permutations - 1) // num_base_permutations
         all_permutations = base_permutations * repetitions
         # Trim to exact number requested
-        all_permutations = all_permutations[:samples_per_option]
+        all_permutations = all_permutations[:samples_per_trial_block]
     else:  # v1
-        all_permutations = list(permutations(options))[:samples_per_option]
+        all_permutations = list(permutations(options))[:samples_per_trial_block]
     
     # Parse option_id into components
     option_name, option_type = option_id.split("|")
@@ -154,7 +154,7 @@ def generate_coordination_dataset(
 def generate_all_datasets(
     version: str,
     conditions: List[ExperimentCondition] | None = None,
-    samples_per_option: int = 120,
+    samples_per_trial_block: int = 120,
     option_ids: List[str] | None = None,
 ) -> Tuple[MemoryDataset, Dict[str, Any]]:
     """
@@ -164,16 +164,14 @@ def generate_all_datasets(
         version (str): Either "v0" or "v1" to determine which options list to use
         conditions (List[ExperimentCondition] | None): Optional list of specific conditions to generate.
             If None, generates all conditions.
-        samples_per_option (int): Number of samples to generate per option set. Defaults to 120.
+        samples_per_trial_block (int): Number of samples to generate per option set. Defaults to 120.
     """
     # Check if we're in test mode
-    is_test_mode = samples_per_option != 120 or conditions is not None
+    is_test_mode = samples_per_trial_block != 120 or conditions is not None
     if is_test_mode:
         print("TEST MODE")
     # Get model and its config
     model = get_model()
-    print(model.name)
-    # print(model.api.base_url)
     
     # Load model mapping
     with open('dataset_generation/model_mapping.json', 'r', encoding='utf-8') as f:
@@ -184,8 +182,6 @@ def generate_all_datasets(
     
     model_config = model_mappings[model.name]
     
-    print(model_config)
-
     # Load options lists
     options_file = f'dataset_generation/options_lists/options_lists_{version}.json'
     with open(options_file, 'r', encoding='utf-8') as f:
@@ -221,7 +217,7 @@ def generate_all_datasets(
             is_reasoning=is_reasoning,
             is_compatible=is_compatible,
             conditions=conditions,
-            samples_per_option=samples_per_option,
+            samples_per_trial_block=samples_per_trial_block,
             options_lists=options_lists,
         )
         all_samples.extend(dataset.samples)
