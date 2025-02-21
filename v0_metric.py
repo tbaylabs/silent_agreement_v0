@@ -95,12 +95,12 @@ def condition_scores() -> Metric:
                     # Save to timestamped directory
                     timestamped_path = os.path.join(timestamped_dir, filename)
                     with open(timestamped_path, 'w', encoding='utf-8') as f:
-                        json.dump(data, f, indent=2, ensure_ascii=False)
+                        json.dump(data, f, indent=2, ensure_ascii=False, default=lambda o: o.item() if hasattr(o, 'item') else o)
                     
                     # Save to recent_results directory
                     recent_path = os.path.join(recent_dir, filename)
                     with open(recent_path, 'w', encoding='utf-8') as f:
-                        json.dump(data, f, indent=2, ensure_ascii=False)
+                        json.dump(data, f, indent=2, ensure_ascii=False, default=lambda o: o.item() if hasattr(o, 'item') else o)
         
         # Extract the significant values we want from stats_overview
         if stats_overview and "t_tests" in stats_overview:
