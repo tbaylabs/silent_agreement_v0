@@ -10,13 +10,16 @@ def load_v0_options() -> Dict[str, List[str]]:
         return json.load(f)
 
 @scorer(metrics=[condition_scores()])
-def match_valid_answers():
+def match_valid_answers(test_mode: bool = False):
     """Creates a scorer that validates answers against the appropriate options list for each sample."""
     
     # Load options once when creating scorer
     options_lists = load_v0_options()
     
     async def score(state, target):
+        # Add test_mode to metadata so it's available to metrics
+        state.metadata["test_mode"] = test_mode
+        
         found_valid_answer = False
         answer_found = None
         explanations = []

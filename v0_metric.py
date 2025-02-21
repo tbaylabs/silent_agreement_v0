@@ -17,6 +17,9 @@ def condition_scores() -> Metric:
         with open(options_file) as f:
             options_lists = json.load(f)
 
+        # Check if we're in test mode
+        test_mode = scores[0].sample_metadata.get("test_mode", False) if scores else False
+        
         # Group scores by condition-option_id combination with metadata
         grouped_scores: Dict[str, Dict] = {}
         for sample in scores:
@@ -39,16 +42,18 @@ def condition_scores() -> Metric:
             
             grouped_scores[key]["scores"].append(sample)
                    
-        # Create directories
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        model_name = get_model().name
-        results_base_dir = os.path.join('results', model_name)
-        timestamped_dir = os.path.join(results_base_dir, timestamp)
-        recent_dir = 'recent_results'
+        # Only create directories and save results if not in test mode
+        if not test_mode:
+            # Create directories
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            model_name = get_model().name
+            results_base_dir = os.path.join('results', model_name)
+            timestamped_dir = os.path.join(results_base_dir, timestamp)
+            recent_dir = 'recent_results'
 
-        # Create all necessary directories
-        os.makedirs(timestamped_dir, exist_ok=True)
-        os.makedirs(recent_dir, exist_ok=True)
+            # Create all necessary directories
+            os.makedirs(timestamped_dir, exist_ok=True)
+            os.makedirs(recent_dir, exist_ok=True)
 
         # Generate results
         group_results = group_results_generator(grouped_scores)
@@ -62,18 +67,19 @@ def condition_scores() -> Metric:
             'stats_overview.json': stats_overview
         }
 
-        # Save all results files
-        for filename, data in files_data.items():
-            if data is not None:  # Only save if we have valid data
-                # Save to timestamped directory
-                timestamped_path = os.path.join(timestamped_dir, filename)
-                with open(timestamped_path, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, indent=2, ensure_ascii=False)
-                
-                # Save to recent_results directory
-                recent_path = os.path.join(recent_dir, filename)
-                with open(recent_path, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, indent=2, ensure_ascii=False)
+        # Save all results files if not in test mode
+        if not test_mode:
+            for filename, data in files_data.items():
+                if data is not None:  # Only save if we have valid data
+                    # Save to timestamped directory
+                    timestamped_path = os.path.join(timestamped_dir, filename)
+                    with open(timestamped_path, 'w', encoding='utf-8') as f:
+                        json.dump(data, f, indent=2, ensure_ascii=False)
+                    
+                    # Save to recent_results directory
+                    recent_path = os.path.join(recent_dir, filename)
+                    with open(recent_path, 'w', encoding='utf-8') as f:
+                        json.dump(data, f, indent=2, ensure_ascii=False)
         
         # Extract the significant values we want from stats_overview
         if stats_overview and "t_tests" in stats_overview:
