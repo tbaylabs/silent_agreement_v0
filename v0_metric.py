@@ -9,7 +9,7 @@ from options_results_generator import generate_options_results
 from stats_overview_generator import generate_stats_overview
 
 @metric 
-def condition_scores() -> Metric:
+def sa_metrics() -> Metric:
     """Returns scores for each condition-option_id combination."""
     def metric_func(scores: list[SampleScore]) -> Dict[str, float]:
         # Load options lists
