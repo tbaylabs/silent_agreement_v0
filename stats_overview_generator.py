@@ -212,7 +212,7 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
         },
         "t_tests": {
             metric: {
-                pair: calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair])
+                pair: calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair]["all"])
                 for pair in diff_pairs
             }
             for metric in metrics
