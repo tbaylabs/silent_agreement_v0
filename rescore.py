@@ -48,7 +48,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Set the model for scoring
-    os.environ["INSPECT_EVAL_MODEL"] = "gpt-4o-mini"
+    os.environ["INSPECT_EVAL_MODEL"] = "openai/gpt-4o-mini"
     
     log_path = sys.argv[1]
     asyncio.run(rescore_log(log_path))
