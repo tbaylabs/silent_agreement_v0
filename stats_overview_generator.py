@@ -74,7 +74,7 @@ def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
         "significant": significant,
         "ci_95_lower": round(ci_lower, 3) if ci_lower is not None else None,
         "ci_95_upper": ci_upper,
-        "p_value": round(p_value, 3),
+        "p_value": round(p_value, 4),
         "t_stat": round(t_stat, 3)
     }
 
