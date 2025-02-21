@@ -38,15 +38,10 @@ def condition_scores() -> Metric:
                 }
             
             grouped_scores[key]["scores"].append(sample)
-            
-        # Print options list for each group
-        print("group score keys:")
-        for key in grouped_scores:
-            print(key)
-            
+                   
         # Create directories
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        model_name = get_model()
+        model_name = get_model().name
         results_base_dir = os.path.join('results', model_name)
         timestamped_dir = os.path.join(results_base_dir, timestamp)
         recent_dir = 'recent_results'
