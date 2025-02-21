@@ -46,6 +46,7 @@ def match_valid_answers(test_mode: bool = False, extractor_model_name: str = "an
             "extractor_model_name": None,
             "verified_valid_by_llm": None,
             "verified_invalid_by_llm": None,
+            "llm_match_failed": None,
             "match_log": None,
         }
         # Try rule-based matching first
