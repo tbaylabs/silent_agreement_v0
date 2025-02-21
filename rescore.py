@@ -1,4 +1,3 @@
-import asyncio
 import os
 from inspect_ai._eval.score import score
 from inspect_ai.log import read_eval_log
@@ -6,7 +5,7 @@ from v0_scorer import match_valid_answers
 import json
 from pathlib import Path
 
-async def rescore_log(log_path: str):
+def rescore_log(log_path: str):
     """
     Rescore an evaluation log file using the v0 scorer.
     
@@ -21,13 +20,15 @@ async def rescore_log(log_path: str):
         format="auto"  # Let it detect based on file extension
     )
     
-    # Create scorer with test_mode=True
-    scorer = match_valid_answers(test_mode=True)
+    # Pass the scorer factory and configuration via scorer_args
+    scorer = match_valid_answers
+    scorer_args = {"test_mode": True}
     
     # Score the log
-    scored_log = await score(
+    scored_log = score(
         log=eval_log,
         scorers=scorer,
+        scorer_args=scorer_args,
         action="overwrite"  # Replace existing scores
     )
     
@@ -51,4 +52,4 @@ if __name__ == "__main__":
     os.environ["INSPECT_EVAL_MODEL"] = "openai/gpt-4o-mini"
     
     log_path = sys.argv[1]
-    asyncio.run(rescore_log(log_path))
+    rescore_log(log_path)
