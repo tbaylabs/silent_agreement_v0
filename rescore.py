@@ -20,15 +20,13 @@ def rescore_log(log_path: str):
         format="auto"  # Let it detect based on file extension
     )
     
-    # Pass the scorer factory and configuration via scorer_args
-    scorer = match_valid_answers
-    scorer_args = {"test_mode": True}
+    # Configure scorer with test_mode=True
+    scorer = match_valid_answers(test_mode=True)
     
     # Score the log
     scored_log = score(
         log=eval_log,
         scorers=scorer,
-        scorer_args=scorer_args,
         action="overwrite"  # Replace existing scores
     )
     
