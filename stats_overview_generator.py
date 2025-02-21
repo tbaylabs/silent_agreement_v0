@@ -35,8 +35,8 @@ def calculate_stats(values: list[float]) -> Dict[str, float]:
 def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     """
     Perform a one-sided t-test for H₁: mean > 0.
-    Returns a one-sided lower bound (the 95% bound) alongside a one-sided p-value.
-    The result is considered significant if p_value < 0.05 and the lower bound is > 0.
+    Returns statistics including one-tailed p-value and CI lower bound.
+    The result is considered significant if one_tail_p_value < 0.05 and one_tail_ci_95_lower > 0.
     """
     mean = np.mean(values)
     n = len(values)
@@ -72,10 +72,9 @@ def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     return {
         "mean": round(mean, 3),
         "significant": significant,
-        "ci_95_lower": round(ci_lower, 3) if ci_lower is not None else None,
-        "ci_95_upper": ci_upper,
-        "p_value": f"{p_value:.4f}",
-        "t_stat": round(t_stat, 3)
+        "one_tail_ci_95_lower": round(ci_lower, 3) if ci_lower is not None else None,
+        "one_tail_p_value": f"{p_value:.4f}",
+        "one_tail_t_stat": round(t_stat, 3)
     }
 
 def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
@@ -181,9 +180,27 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
         },
         "difference_metrics": {
             metric: {
-                "all": { f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair]["all"]) for pair in diff_pairs },
-                "symbol": { f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair]["symbol"]) for pair in diff_pairs },
-                "text": { f"{pair}_stats": calculate_stats(value_collectors["difference_metrics"][metric][pair]["text"]) for pair in diff_pairs }
+                "all": {
+                    pair: {
+                        **calculate_stats(value_collectors["difference_metrics"][metric][pair]["all"]),
+                        **calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair]["all"])
+                    }
+                    for pair in diff_pairs
+                },
+                "symbol": {
+                    pair: {
+                        **calculate_stats(value_collectors["difference_metrics"][metric][pair]["symbol"]),
+                        **calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair]["symbol"])
+                    }
+                    for pair in diff_pairs
+                },
+                "text": {
+                    pair: {
+                        **calculate_stats(value_collectors["difference_metrics"][metric][pair]["text"]),
+                        **calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair]["text"])
+                    }
+                    for pair in diff_pairs
+                }
             }
             for metric in metrics
         },
@@ -209,13 +226,6 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
                 }
                 for cond in conditions
             }
-        },
-        "t_tests": {
-            metric: {
-                pair: calculate_one_sample_ttest(value_collectors["difference_metrics"][metric][pair]["all"])
-                for pair in diff_pairs
-            }
-            for metric in metrics
         },
         "meta": {
             "total_invalid_count": sum(totals["counts"]["total"][cond] - totals["counts"]["valid"][cond] for cond in conditions),
