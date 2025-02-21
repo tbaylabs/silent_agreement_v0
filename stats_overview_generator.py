@@ -151,13 +151,10 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     
     # Calculate stats
     stats_overview = {
-        "absolute_metrics": {
-            metric: {
-                "all": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["all"]) for cond in conditions },
-                "symbol": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["symbol"]) for cond in conditions },
-                "text": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["text"]) for cond in conditions }
-            }
-            for metric in metrics
+        "meta": {
+            "total_count": option_count,
+            "total_invalid_count": sum(totals["counts"]["total"][cond] - totals["counts"]["valid"][cond] for cond in conditions),
+            "total_valid_count": sum(totals["counts"]["valid"][cond] for cond in conditions)
         },
         "difference_metrics": {
             metric: {
@@ -185,6 +182,14 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
             }
             for metric in metrics
         },
+        "absolute_metrics": {
+            metric: {
+                "all": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["all"]) for cond in conditions },
+                "symbol": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["symbol"]) for cond in conditions },
+                "text": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["text"]) for cond in conditions }
+            }
+            for metric in metrics
+        },
         "validity_metrics": {
             "total_count": {
                 f"{cond}_stats": {
@@ -207,10 +212,6 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
                 }
                 for cond in conditions
             }
-        },
-        "meta": {
-            "total_invalid_count": sum(totals["counts"]["total"][cond] - totals["counts"]["valid"][cond] for cond in conditions),
-            "total_valid_count": sum(totals["counts"]["valid"][cond] for cond in conditions)
         }
     }
     
