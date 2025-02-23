@@ -18,7 +18,18 @@
       "aka": "Claude 3.5 Haiku",
       "reasoning": false,
       "creator": "Anthropic"
-  }
+  },
+  "claude-3-5-sonnet-20241022": {
+    "aka": "Claude 3.5 Sonnet New",
+    "reasoning": false,
+    "creator": "Anthropic"
+}, 
+"llama-3.3-70b-versatile" : {
+  "aka": "llama 3.3 70b",
+  "reasoning": false,
+  "creator": "Meta"
+}
+
 
 }
 
