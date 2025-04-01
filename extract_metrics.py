@@ -73,16 +73,16 @@ def create_difference_metric_graph(results, metric_key, output_filename, is_elic
     
     # Set title and labels based on which metric we're showing
     if is_elicit:
-        title = "Change in Performance: Coordination with Elicited Chain-of-Thought vs Control"
-        subtitle = "(Positive values indicate improved convergence on top response)"
+        title = "Change in Performance: In-context coordination (Elicit CoT) vs Control"
+        subtitle = "(Absolute percentage point change in convergence on most common response)"
     else:
-        title = "Change in Performance: Coordination with Suppressed Chain-of-Thought vs Control"
-        subtitle = "(Positive values indicate improved convergence on top response)"
+        title = "Change in Performance: Out-of-context coordination vs Control"
+        subtitle = "(Absolute percentage point change in convergence on most common response)"
     
     # Customize plot
     plt.suptitle(title, fontsize=14, fontweight='bold')
     plt.title(subtitle, fontsize=12, fontweight='normal', style='italic')
-    plt.ylabel('Change in Absolute Percentage Points of Convergence', fontsize=12)
+    plt.ylabel('Percentage points', fontsize=12)
     plt.xlabel('Model', fontsize=12)
     plt.xticks(rotation=45, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
