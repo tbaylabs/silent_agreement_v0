@@ -36,7 +36,8 @@
     "reasoning": false,
     "creator": "Anthropic"
     },
-"llama-3.3-70b-versatile" : {
+
+    "llama-3.3-70b-versatile" : {
   "aka": "llama 3.3 70b",
   "reasoning": false,
   "creator": "Meta"
