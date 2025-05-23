@@ -1,9 +1,0 @@
-pyproject.toml
-src/custom_model_apis/__init__.py
-src/custom_model_apis/_registry.py
-src/custom_model_apis/custom.py
-src/custom_model_apis.egg-info/PKG-INFO
-src/custom_model_apis.egg-info/SOURCES.txt
-src/custom_model_apis.egg-info/dependency_links.txt
-src/custom_model_apis.egg-info/entry_points.txt
-src/custom_model_apis.egg-info/top_level.txt
