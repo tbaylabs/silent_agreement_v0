@@ -9,6 +9,11 @@
       "reasoning": false,
       "creator": "Open AI"
     },
+    "gpt-4o": {
+      "aka": "gpt-4o May 2025",
+      "reasoning": false,
+      "creator": "OpenAI"
+    },
     "deepseek-chat": {
         "aka": "deepseek-v3",
         "reasoning": false,
