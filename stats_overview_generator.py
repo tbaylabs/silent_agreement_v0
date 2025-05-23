@@ -13,6 +13,32 @@ def calculate_stats(values: list[float]) -> Dict[str, float]:
         "sd": round(sd, 3),
     }
 
+def calculate_token_stats(token_stats_list: list[Dict]) -> Dict[str, float]:
+    """Calculate aggregated token statistics from a list of token stat dictionaries."""
+    if not token_stats_list:
+        return {}
+    
+    # Collect all values for each metric
+    means = [stats.get("mean", 0) for stats in token_stats_list if stats]
+    medians = [stats.get("median", 0) for stats in token_stats_list if stats]
+    q1s = [stats.get("q1", 0) for stats in token_stats_list if stats]
+    q3s = [stats.get("q3", 0) for stats in token_stats_list if stats]
+    mins = [stats.get("min", 0) for stats in token_stats_list if stats]
+    maxs = [stats.get("max", 0) for stats in token_stats_list if stats]
+    
+    if not means:  # No valid data
+        return {}
+    
+    return {
+        "mean": round(np.mean(means), 3),
+        "median": round(np.median(medians), 3),
+        "q1": round(np.median(q1s), 3),
+        "q3": round(np.median(q3s), 3),
+        "min": int(min(mins)),
+        "max": int(max(maxs)),
+        "range": [int(min(mins)), int(max(maxs))]
+    }
+
 def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     """
     Perform a one-sided t-test for H₁: mean > 0.
@@ -103,6 +129,9 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
         "total_count": {cond: [] for cond in conditions},
         "valid_count": {
             cond: {"values": [], "options_lists": []} for cond in conditions
+        },
+        "token_count": {
+            cond: [] for cond in conditions
         }
     }
     
@@ -148,6 +177,11 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
                 validity_collectors["total_count"][condition].append(total_count)
                 validity_collectors["valid_count"][condition]["values"].append(valid_count)
                 validity_collectors["valid_count"][condition]["options_lists"].append(option_data["options_list"])
+                
+                # Collect token stats
+                token_stats = option_data["conditions"][condition].get("token_stats", {})
+                if token_stats:
+                    validity_collectors["token_count"][condition].append(token_stats)
     
     # Calculate stats
     stats_overview = {
@@ -191,26 +225,38 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
             for metric in metrics
         },
         "validity_metrics": {
-            "total_count": {
-                f"{cond}_stats": {
-                    "mean": round(np.mean(validity_collectors["total_count"][cond]), 3),
-                    "highest": round(max(validity_collectors["total_count"][cond]), 3),
-                    "lowest": round(min(validity_collectors["total_count"][cond]), 3)
+            "sample_count": {
+                "total_count": {
+                    f"{cond}_stats": {
+                        "mean": round(np.mean(validity_collectors["total_count"][cond]), 3),
+                        "highest": round(max(validity_collectors["total_count"][cond]), 3),
+                        "lowest": round(min(validity_collectors["total_count"][cond]), 3)
+                    }
+                    for cond in conditions
+                },
+                "valid_count": {
+                    f"{cond}_stats": {
+                        "mean": round(np.mean(validity_collectors["valid_count"][cond]["values"]), 3),
+                        "highest": round(max(validity_collectors["valid_count"][cond]["values"]), 3),
+                        "lowest": round(min(validity_collectors["valid_count"][cond]["values"]), 3),
+                        "lowest_list": validity_collectors["valid_count"][cond]["options_lists"][
+                            validity_collectors["valid_count"][cond]["values"].index(
+                                min(validity_collectors["valid_count"][cond]["values"])
+                            )
+                        ]
+                    }
+                    for cond in conditions
                 }
-                for cond in conditions
             },
-            "valid_count": {
-                f"{cond}_stats": {
-                    "mean": round(np.mean(validity_collectors["valid_count"][cond]["values"]), 3),
-                    "highest": round(max(validity_collectors["valid_count"][cond]["values"]), 3),
-                    "lowest": round(min(validity_collectors["valid_count"][cond]["values"]), 3),
-                    "lowest_list": validity_collectors["valid_count"][cond]["options_lists"][
-                        validity_collectors["valid_count"][cond]["values"].index(
-                            min(validity_collectors["valid_count"][cond]["values"])
-                        )
-                    ]
+            "token_count": {
+                "all": calculate_token_stats([
+                    stats for cond in conditions 
+                    for stats in validity_collectors["token_count"][cond]
+                ]),
+                **{
+                    f"{cond}_stats": calculate_token_stats(validity_collectors["token_count"][cond])
+                    for cond in conditions
                 }
-                for cond in conditions
             }
         }
     }

@@ -42,6 +42,11 @@ def match_valid_answers(test_mode: bool = False,
         valid_answers = options_lists[option_id]
         completion = state.output.completion
         
+        # Count tokens in the completion
+        # Simple approximation: split by whitespace and count
+        # This gives a rough token count without needing a tokenizer
+        token_count = len(completion.split()) if completion else 0
+        
         # Initialize metadata
         score_metadata = {
             "verified_valid_by_rule": None,
@@ -51,6 +56,7 @@ def match_valid_answers(test_mode: bool = False,
             "verified_invalid_by_llm": None,
             "llm_match_failed": None,
             "match_log": None,
+            "token_count": token_count,
         }
         # Try rule-based matching first
         pattern = '|'.join(re.escape(ans) for ans in valid_answers)

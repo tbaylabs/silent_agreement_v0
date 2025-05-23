@@ -38,6 +38,9 @@ def generate_options_results(group_results: Dict[str, Any]) -> Dict[str, Any]:
         options_grouped[option_id]["overview"]["top_prop_include_invalid"][condition] = top_include
         options_grouped[option_id]["overview"]["top_prop_exclude_invalid"][condition] = top_exclude
         
+        # Get token stats from group data
+        token_stats = group.get("token_stats", {})
+        
         # Add to conditions
         options_grouped[option_id]["conditions"][condition] = {
             "response_distribution": response_dist,
@@ -46,7 +49,8 @@ def generate_options_results(group_results: Dict[str, Any]) -> Dict[str, Any]:
                 "valid_response_count": valid_responses,
                 "top_prop_include_invalid": top_include,
                 "top_prop_exclude_invalid": top_exclude
-            }
+            },
+            "token_stats": token_stats
         }
     
     # Second pass: calculate differences

@@ -11,9 +11,15 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
         response_dist["invalid"] = 0  # Add invalid category
         response_dist["fail_subset_invalid"] = 0  # Add fail subcategory
         
-        # Count responses
+        # Count responses and collect token counts
+        token_counts = []
         for sample_score in group["scores"]:
             score = sample_score.score
+            
+            # Collect token count from score metadata
+            token_count = score.metadata.get("token_count", 0) if score.metadata else 0
+            token_counts.append(token_count)
+            
             if score.value == 0:
                 response_dist["invalid"] += 1
                 if score.answer == "fail":
@@ -28,6 +34,20 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
                     )
                 response_dist[answer] += 1
         
+        # Calculate token statistics for this group
+        import numpy as np
+        token_stats = {}
+        if token_counts:
+            token_stats = {
+                "mean": round(float(np.mean(token_counts)), 3),
+                "median": round(float(np.median(token_counts)), 3),
+                "q1": round(float(np.percentile(token_counts, 25)), 3),
+                "q3": round(float(np.percentile(token_counts, 75)), 3),
+                "min": int(min(token_counts)),
+                "max": int(max(token_counts)),
+                "total_tokens": int(sum(token_counts))
+            }
+        
         output_data[key] = {
             "option_id": group["option_id"],
             "options_list": group["options_list"],
@@ -35,7 +55,8 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
             "option_type": group["option_type"],
             "condition": group["condition"],
             "score_count": len(group["scores"]),
-            "response_distribution": response_dist
+            "response_distribution": response_dist,
+            "token_stats": token_stats
         }
     
     # Write to file, overwriting if it exists
