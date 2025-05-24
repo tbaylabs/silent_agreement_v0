@@ -3,7 +3,6 @@ from typing import Dict, List
 import re
 from v0_metric import sa_metrics
 import json
-from inspect_ai.model import get_model
 
 from match_by_llm import match_by_llm
 
