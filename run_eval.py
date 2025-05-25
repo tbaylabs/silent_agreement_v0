@@ -2,6 +2,7 @@
 """
 Custom entrypoint for running Silent Agreement evaluations.
 Handles log file placement in model-specific dated folders and recent_results.
+Uses --log-dir parameter to specify custom log location.
 """
 
 import os
@@ -9,7 +10,6 @@ import sys
 import shutil
 import glob
 from datetime import datetime
-from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 from inspect_ai import eval
 from sa_v0_remastered import sa_test
@@ -49,12 +49,6 @@ def main():
     model_log_dir = os.path.join('results', folder_path, timestamp)
     os.makedirs(model_log_dir, exist_ok=True)
     
-    # Set inspect log directory to our custom location
-    os.environ["INSPECT_LOG_DIR"] = model_log_dir
-    
-    # Store original model name for use in metrics
-    os.environ["ORIGINAL_MODEL_NAME"] = model_name
-    
     # Clear and recreate recent_result directory
     recent_dir = 'recent_result'
     if os.path.exists(recent_dir):
@@ -65,11 +59,8 @@ def main():
     print(f"Logs will be saved to: {model_log_dir}")
     
     try:
-        # Set the model as environment variable as backup
-        os.environ["INSPECT_EVAL_MODEL"] = model_name
-        
-        # Run the evaluation
-        logs = eval(sa_test(), model=model_name)
+        # Run the evaluation with custom log directory and JSON generation enabled
+        logs = eval(sa_test(generate_json_results=True), model=model_name, log_dir=model_log_dir)
         log = logs[0]  # Get the first (and only) log
         
         if log.status == "success":

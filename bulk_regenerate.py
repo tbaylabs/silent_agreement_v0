@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Bulk regenerate metrics for all eval logs in the results directory.
-Finds all dated folders and runs the rescorer on their .eval files.
+Bulk generate JSON results for all eval logs in the results directory.
+Finds all dated folders and runs the JSON results generator on their .eval files.
 """
 
 import os
@@ -50,9 +50,9 @@ def main():
         print('='*80)
         
         try:
-            # Run the regenerate script on this eval log
+            # Run the JSON results generator on this eval log (with --force to skip prompts)
             result = subprocess.run([
-                sys.executable, "rescore_eval.py", eval_log
+                sys.executable, "results_generators/generate_json_results.py", eval_log, "--force"
             ], capture_output=True, text=True, timeout=300)  # 5 minute timeout
             
             if result.returncode == 0:
