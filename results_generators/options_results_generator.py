@@ -1,5 +1,4 @@
 from typing import Dict, Any
-import json
 
 def generate_options_results(group_results: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -96,8 +95,4 @@ def generate_options_results(group_results: Dict[str, Any]) -> Dict[str, Any]:
                 }
             }
 
-    # Write to file
-    with open("results_by_option.json", "w", encoding='utf-8') as f:
-        json.dump(options_grouped, f, indent=2, ensure_ascii=False)
-    
     return options_grouped

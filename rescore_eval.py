@@ -13,9 +13,7 @@ from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 from inspect_ai.log import read_eval_log
 from inspect_ai.scorer import SampleScore
-from group_results_generator import group_results_generator
-from options_results_generator import generate_options_results  
-from stats_overview_generator import generate_stats_overview
+from results_generators import group_results_generator, generate_options_results, generate_stats_overview
 
 # Load environment variables
 load_dotenv(find_dotenv())
@@ -89,7 +87,7 @@ def regenerate_metrics(eval_log_path: str, output_dir: str = None):
         grouped_scores = {}
         
         # Load options list once
-        options_file = os.path.join(script_dir, 'dataset_generation/options_lists/options_lists_v0.json')
+        options_file = os.path.join(script_dir, 'dataset_generation/options_lists/options_lists.json')
         with open(options_file, 'r') as f:
             options_lists = json.load(f)
         
@@ -119,19 +117,37 @@ def regenerate_metrics(eval_log_path: str, output_dir: str = None):
         os.chdir(output_dir)
         
         # Generate results using the same pipeline as the original eval
-        print("Generating group_results.json...")
+        print("Generating group results...")
         group_results = group_results_generator(grouped_scores)
         
-        print("Generating results_by_option.json...")
+        print("Generating options results...")
         options_results = generate_options_results(group_results)
         
-        print("Generating stats_overview.json...")
+        print("Generating experiment results...")
         stats_overview = generate_stats_overview(options_results)
         
+        # Write JSON files
+        print("Writing group_results.json...")
+        with open("group_results.json", "w") as f:
+            json.dump(group_results, f, indent=2)
+        
+        print("Writing options_results.json...")
+        with open("options_results.json", "w", encoding='utf-8') as f:
+            json.dump(options_results, f, indent=2, ensure_ascii=False)
+        
         if stats_overview:
+            print("Writing experiment_results.json...")
+            with open("experiment_results.json", "w", encoding='utf-8') as f:
+                json.dump(
+                    stats_overview,
+                    f,
+                    indent=2,
+                    ensure_ascii=False,
+                    default=lambda o: o.item() if hasattr(o, "item") else o
+                )
             print("✅ Successfully regenerated all JSON files with updated metrics")
         else:
-            print("⚠️  Stats overview generation was skipped (likely due to insufficient data)")
+            print("⚠️  Experiment results generation was skipped (likely due to insufficient data)")
         
         return True
         

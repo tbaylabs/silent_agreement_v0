@@ -58,7 +58,6 @@ def validate_experiment_setup(
 
 def generate_coordination_dataset(
     options: List[str],
-    version: str,
     option_id: str,  # e.g., "shapes_1|text"
     model: str,
     model_role: str,
@@ -73,8 +72,7 @@ def generate_coordination_dataset(
     
     Args:
         options (list): List of strings/emojis to use as options
-        version (str): Either "v0" (4 options, repeated 5 times) or "v1" (5 options, once)
-        name (str): Name of the option set for ID generation
+        option_id (str): ID of the option set for metadata
         model_role (str): Role name for the model's responses
         is_reasoning (bool): Whether this is a reasoning model
         is_compatible (bool): Whether model is SA_v0 compatible
@@ -84,16 +82,13 @@ def generate_coordination_dataset(
     Returns:
         MemoryDataset: Dataset containing all permutations with appropriate prompts for all conditions
     """
-    if version == "v0":
-        # Calculate number of repetitions needed
-        base_permutations = list(permutations(options))
-        num_base_permutations = len(base_permutations)
-        repetitions = (samples_per_trial_block + num_base_permutations - 1) // num_base_permutations
-        all_permutations = base_permutations * repetitions
-        # Trim to exact number requested
-        all_permutations = all_permutations[:samples_per_trial_block]
-    else:  # v1
-        all_permutations = list(permutations(options))[:samples_per_trial_block]
+    # Calculate number of repetitions needed (4 options, repeated 5 times)
+    base_permutations = list(permutations(options))
+    num_base_permutations = len(base_permutations)
+    repetitions = (samples_per_trial_block + num_base_permutations - 1) // num_base_permutations
+    all_permutations = base_permutations * repetitions
+    # Trim to exact number requested
+    all_permutations = all_permutations[:samples_per_trial_block]
     
     # Parse option_id into components
     option_name, option_type = option_id.split("|")
@@ -128,7 +123,6 @@ def generate_coordination_dataset(
                 "model_role": model_role,
                 "is_reasoning": is_reasoning,
                 "is_compatible": is_compatible,
-                "version": version,
                 "permutation_index": idx,
                 "options_list": options_lists[option_id],  # Add the specific options list for this option_id
                 "samples_per_trial_block": samples_per_trial_block  # Add this line
@@ -154,16 +148,14 @@ def generate_coordination_dataset(
 
 
 def generate_all_datasets(
-    version: str,
     conditions: List[ExperimentCondition] | None = None,
     samples_per_trial_block: int = 120,
     option_ids: List[str] | None = None,
 ) -> Tuple[MemoryDataset, Dict[str, Any]]:
     """
-    Generate datasets for all option lists in the appropriate version file.
+    Generate datasets for all option lists.
     
     Args:
-        version (str): Either "v0" or "v1" to determine which options list to use
         conditions (List[ExperimentCondition] | None): Optional list of specific conditions to generate.
             If None, generates all conditions.
         samples_per_trial_block (int): Number of samples to generate per option set. Defaults to 120.
@@ -185,11 +177,11 @@ def generate_all_datasets(
     }
     
     # Load options lists
-    options_file = f'dataset_generation/options_lists/options_lists_{version}.json'
+    options_file = 'dataset_generation/options_lists/options_lists.json'
     with open(options_file, 'r', encoding='utf-8') as f:
         options_lists = json.load(f)
     
-    # For v0, use simplified settings
+    # Use simplified settings
     is_reasoning = False
     is_compatible = False
     model_role = "assistant"
@@ -206,7 +198,6 @@ def generate_all_datasets(
     for option_id, options in options_lists.items():
         dataset = generate_coordination_dataset(
             options=options,
-            version=version,
             option_id=option_id,
             model=model.name,
             model_role=model_role,
