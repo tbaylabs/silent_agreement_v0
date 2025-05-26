@@ -93,17 +93,17 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     for option_data in options_results.values():
         # Check if differences exists and is not empty
         if not option_data.get("differences"):
-            print("Skipping stats overview generation: some options missing differences data")
+            # Silently skip - this is normal during incremental metric calculation
             return None
             
         # Check if all conditions have valid response counts
         for condition_data in option_data["conditions"].values():
             if condition_data["trial_block_stats"]["total_response_count"] < 1:
-                print("Skipping stats overview generation: some conditions have no responses")
+                # Silently skip - this is normal during incremental metric calculation
                 return None
 
     # Initialize accumulators for each metric and condition
-    metrics = ["top_prop_include_invalid", "top_prop_exclude_invalid"]
+    metrics = ["top_prop_all", "top_prop_exclude_invalid"]
     conditions = ["control_suppress_cot", "coordinate_suppress_cot", "coordinate_elicit_cot"]
     diff_pairs = [
         "coordinate_suppress_cot_vs_control",
@@ -129,53 +129,87 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
         "valid_count": {
             cond: {"values": [], "options_lists": []} for cond in conditions
         },
+        "illegible_invalid_count": {cond: [] for cond in conditions},
+        "ooc_invalid_count": {cond: [] for cond in conditions},
+        "ooc_warning_count": {cond: [] for cond in conditions},
+        "combined_invalid_count": {cond: [] for cond in conditions},
         "token_count": {
             cond: [] for cond in conditions
         }
     }
     
+    # Track valid measures
+    valid_measures = []
+    invalid_option_sets = []
+    
     totals = {
         "counts": {
             "total": {cond: 0 for cond in conditions},
-            "valid": {cond: 0 for cond in conditions}
+            "valid": {cond: 0 for cond in conditions},
+            "illegible_invalid": {cond: 0 for cond in conditions},
+            "ooc_invalid": {cond: 0 for cond in conditions},
+            "ooc_warning": {cond: 0 for cond in conditions},
+            "combined_invalid": {cond: 0 for cond in conditions}
         }
     }
     
     option_count = 0
     
     # Sum up values across all options
-    for option_data in options_results.values():
+    for option_id, option_data in options_results.items():
         overview = option_data["overview"]
         differences = option_data.get("differences", {})
         
         # Only include options that have all conditions
-        if all(cond in overview["top_prop_include_invalid"] for cond in conditions):
+        if all(cond in overview["top_prop_all"] for cond in conditions):
             option_count += 1
+            
+            # For now, treat all measures as valid
+            # TODO: Implement experiment-level validity checking
+            valid_measures.append(option_id)
             
             option_type = option_data["options_type"]  # "symbol" or "text"
             for metric in metrics:
-                for condition in conditions:
-                    val = overview[metric][condition]
-                    value_collectors["absolute_metrics"][metric][condition]["all"].append(val)
-                    value_collectors["absolute_metrics"][metric][condition][option_type].append(val)
+                if metric in overview:
+                    for condition in conditions:
+                        if condition in overview[metric]:
+                            val = overview[metric][condition]
+                            value_collectors["absolute_metrics"][metric][condition]["all"].append(val)
+                            value_collectors["absolute_metrics"][metric][condition][option_type].append(val)
             for metric in metrics:
-                for pair in diff_pairs:
-                    val = differences[metric][pair]
-                    value_collectors["difference_metrics"][metric][pair]["all"].append(val)
-                    value_collectors["difference_metrics"][metric][pair][option_type].append(val)
+                if metric in differences:
+                    for pair in diff_pairs:
+                        if pair in differences[metric]:
+                            val = differences[metric][pair]
+                            value_collectors["difference_metrics"][metric][pair]["all"].append(val)
+                            value_collectors["difference_metrics"][metric][pair][option_type].append(val)
             
             # Sum counts and collect validity metrics
             for condition in conditions:
                 condition_data = option_data["conditions"][condition]["trial_block_stats"]
+                validity_stats = option_data["conditions"][condition].get("validity_stats", {})
+                
                 total_count = condition_data["total_response_count"]
-                valid_count = condition_data["valid_response_count"]
+                valid_count = condition_data.get("valid_response_count", condition_data.get("valid_illegible_count", 0))
+                illegible_invalid = validity_stats.get("illegible_invalid_count", 0)
+                ooc_invalid = validity_stats.get("ooc_invalid_count", 0)
+                ooc_warning = validity_stats.get("ooc_warning_count", 0)
+                combined_invalid = validity_stats.get("combined_invalid_count", illegible_invalid)
                 
                 totals["counts"]["total"][condition] += total_count
                 totals["counts"]["valid"][condition] += valid_count
+                totals["counts"]["illegible_invalid"][condition] += illegible_invalid
+                totals["counts"]["ooc_invalid"][condition] += ooc_invalid
+                totals["counts"]["ooc_warning"][condition] += ooc_warning
+                totals["counts"]["combined_invalid"][condition] += combined_invalid
                 
                 validity_collectors["total_count"][condition].append(total_count)
                 validity_collectors["valid_count"][condition]["values"].append(valid_count)
                 validity_collectors["valid_count"][condition]["options_lists"].append(option_data["options_list"])
+                validity_collectors["illegible_invalid_count"][condition].append(illegible_invalid)
+                validity_collectors["ooc_invalid_count"][condition].append(ooc_invalid)
+                validity_collectors["ooc_warning_count"][condition].append(ooc_warning)
+                validity_collectors["combined_invalid_count"][condition].append(combined_invalid)
                 
                 # Collect token stats
                 token_stats = option_data["conditions"][condition].get("token_stats", {})
@@ -186,8 +220,27 @@ def generate_stats_overview(options_results: Dict[str, Any]) -> Dict[str, Any]:
     stats_overview = {
         "meta": {
             "total_count": option_count,
-            "total_invalid_count": sum(totals["counts"]["total"][cond] - totals["counts"]["valid"][cond] for cond in conditions),
+            "total_illegible_invalid_count": sum(totals["counts"]["illegible_invalid"][cond] for cond in conditions),
+            "total_ooc_invalid_count": sum(totals["counts"]["ooc_invalid"][cond] for cond in conditions),
+            "total_ooc_warning_count": sum(totals["counts"]["ooc_warning"][cond] for cond in conditions),
+            "total_combined_invalid_count": sum(totals["counts"]["combined_invalid"][cond] for cond in conditions),
+            "total_valid_illegible_count": sum(totals["counts"]["valid"][cond] for cond in conditions),
+            "total_valid_combined_count": sum(totals["counts"]["total"][cond] - totals["counts"]["combined_invalid"][cond] for cond in conditions),
+            # Backward compatibility
+            "total_invalid_count": sum(totals["counts"]["illegible_invalid"][cond] for cond in conditions),
             "total_valid_count": sum(totals["counts"]["valid"][cond] for cond in conditions)
+        },
+        "valid_measures": {
+            "count": f"{len(valid_measures)}/{option_count}",
+            "valid_measures_count": len(valid_measures),
+            "total_measures_count": option_count,
+            "invalid_option_sets": invalid_option_sets,
+            "validity_breakdown": {
+                "illegible_failures": len([x for x in invalid_option_sets if x["failure_reason"] == "illegible"]),
+                "ooc_failures": len([x for x in invalid_option_sets if x["failure_reason"] == "ooc"]),
+                "combined_failures": len([x for x in invalid_option_sets if x["failure_reason"] == "combined"]),
+                "total_failures": len(invalid_option_sets)
+            }
         },
         "difference_metrics": {
             metric: {

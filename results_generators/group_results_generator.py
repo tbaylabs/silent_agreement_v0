@@ -7,23 +7,32 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
         # Create response distribution with all values set to 0
         options = group["options_list"]
         response_dist = {option: 0 for option in options}
-        response_dist["invalid"] = 0  # Add invalid category
-        response_dist["fail_subset_invalid"] = 0  # Add fail subcategory
+        response_dist["invalid_illegible"] = 0  # Failed extraction
+        response_dist["invalid_ooc"] = 0  # Valid answer but too many tokens
         
         # Count responses and collect token counts
         token_counts = []
+        ooc_warning_count = 0
+        
         for sample_score in group["scores"]:
-            score = sample_score.score
+            score = sample_score.score if hasattr(sample_score, 'score') else sample_score.scores
             
             # Collect token count from score metadata
             token_count = score.metadata.get("token_count", 0) if score.metadata else 0
             token_counts.append(token_count)
             
+            # Check OOC validity
+            ooc_validity = score.metadata.get("ooc_validity", "not_applicable") if score.metadata else "not_applicable"
+            
             if score.value == 0:
-                response_dist["invalid"] += 1
-                if score.answer == "fail":
-                    response_dist["fail_subset_invalid"] += 1
+                # Check if it's an OOC violation or illegible
+                if score.answer == "invalid_ooc":
+                    response_dist["invalid_ooc"] += 1
+                else:
+                    # This is an illegible response (failed extraction)
+                    response_dist["invalid_illegible"] += 1
             else:
+                # Valid answer extracted
                 answer = score.answer
                 if answer not in options:
                     raise ValueError(
@@ -32,6 +41,11 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
                         f"any option. Group key: {key}"
                     )
                 response_dist[answer] += 1
+                
+                # Track OOC warnings (valid responses with warnings)
+                if ooc_validity == "warning":
+                    ooc_warning_count += 1
+        
         
         # Calculate token statistics for this group
         import numpy as np
@@ -47,14 +61,32 @@ def group_results_generator(grouped_data: Dict[str, Dict]) -> Dict:
                 "total_tokens": int(sum(token_counts))
             }
         
+        # Calculate validity statistics
+        total_count = len(group["scores"])
+        illegible_invalid_count = response_dist["invalid_illegible"]
+        ooc_invalid_count = response_dist["invalid_ooc"]
+        combined_invalid_count = illegible_invalid_count + ooc_invalid_count
+        
+        validity_stats = {
+            "illegible_invalid_count": illegible_invalid_count,
+            "ooc_invalid_count": ooc_invalid_count,
+            "ooc_warning_count": ooc_warning_count,
+            "combined_invalid_count": combined_invalid_count,
+            "illegible_invalid_rate": round(illegible_invalid_count / total_count, 3) if total_count > 0 else 0,
+            "ooc_invalid_rate": round(ooc_invalid_count / total_count, 3) if total_count > 0 else 0,
+            "ooc_warning_rate": round(ooc_warning_count / total_count, 3) if total_count > 0 else 0,
+            "combined_invalid_rate": round(combined_invalid_count / total_count, 3) if total_count > 0 else 0
+        }
+        
         output_data[key] = {
             "option_id": group["option_id"],
             "options_list": group["options_list"],
             "option_name": group["option_name"],
             "option_type": group["option_type"],
             "condition": group["condition"],
-            "score_count": len(group["scores"]),
+            "score_count": total_count,
             "response_distribution": response_dist,
+            "validity_stats": validity_stats,
             "token_stats": token_stats
         }
     
