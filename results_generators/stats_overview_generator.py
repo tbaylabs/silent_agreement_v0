@@ -259,13 +259,55 @@ def generate_stats_overview(
                 # Silently skip - this is normal during incremental metric calculation
                 return None
 
+    # First pass: identify invalid trial blocks and measures
+    invalid_threshold = 0.2  # 20% threshold
+    invalid_measures = {
+        "ooc_experiment": [],  # Measures invalid for OOC experiment
+        "cot_experiment": [],  # Measures invalid for COT experiment
+        "all_invalid": []      # Measures invalid for all experiments
+    }
+    
+    # Check each measure (option set) for invalid trial blocks
+    for option_id, option_data in options_results.items():
+        if option_id == "_notice":  # Skip the canary notice
+            continue
+            
+        trial_blocks = option_data["trial_blocks_by_condition"]
+        invalid_conditions = []
+        
+        # Check each trial block within this measure
+        for condition, trial_block in trial_blocks.items():
+            stats = trial_block["stats"]
+            if stats["prop_invalid"] > invalid_threshold:
+                invalid_conditions.append(condition)
+        
+        # If any trial block is invalid, the entire measure is invalid
+        if invalid_conditions:
+            # If control is invalid, the measure is invalid for all experiments
+            if "control" in invalid_conditions:
+                invalid_measures["all_invalid"].append(option_id)
+                invalid_measures["ooc_experiment"].append(option_id)
+                invalid_measures["cot_experiment"].append(option_id)
+            else:
+                # If only experimental conditions are invalid
+                if "ooc_coordinate" in invalid_conditions:
+                    invalid_measures["ooc_experiment"].append(option_id)
+                    # COT experiment also uses ooc_coordinate (for elicit_vs_suppress comparison)
+                    invalid_measures["cot_experiment"].append(option_id)
+                if "cot_coordinate" in invalid_conditions:
+                    invalid_measures["cot_experiment"].append(option_id)
+    
+    # Calculate total measures (excluding _notice)
+    total_measures = len([k for k in options_results.keys() if k != "_notice"])
+    
     # Determine which conditions and comparisons are available
     metrics = ["top_prop_exclude_invalid", "top_prop_include_invalid"]
     
     # Detect available conditions from the data
     all_conditions = set()
     for option_data in options_results.values():
-        all_conditions.update(option_data["trial_blocks_by_condition"].keys())
+        if isinstance(option_data, dict) and "trial_blocks_by_condition" in option_data:
+            all_conditions.update(option_data["trial_blocks_by_condition"].keys())
     
     # Set up conditions and diff pairs based on what's available
     conditions = list(all_conditions)
@@ -288,6 +330,25 @@ def generate_stats_overview(
         "difference_metrics": {
             metric: {pair: {"all": [], "symbol": [], "text": []} for pair in diff_pairs}
             for metric in metrics
+        }
+    }
+    
+    # Separate collectors for valid measures per experiment
+    experiment_value_collectors = {
+        "ooc": {
+            "symbol_and_text": [],
+            "symbol": [],
+            "text": []
+        },
+        "cot": {
+            "symbol_and_text": [],
+            "symbol": [],
+            "text": []
+        },
+        "elicit_vs_suppress": {
+            "symbol_and_text": [],
+            "symbol": [],
+            "text": []
         }
     }
     
@@ -322,6 +383,9 @@ def generate_stats_overview(
     
     # Sum up values across all options
     for option_id, option_data in options_results.items():
+        if option_id == "_notice":  # Skip the canary notice
+            continue
+            
         # Get values from trial blocks instead of overview
         trial_blocks = option_data["trial_blocks_by_condition"]
         differences = option_data.get("top_prop_exclude_invalid_differences", {})
@@ -330,8 +394,8 @@ def generate_stats_overview(
         if all(cond in trial_blocks for cond in conditions):
             option_count += 1
             
-            # For now, treat all measures as valid
-            # TODO: Implement experiment-level validity checking
+            # Check if this measure is valid for the current analysis
+            # For now, we collect data for all measures and filter later per experiment
             valid_measures.append(option_id)
             
             option_type = option_data["options_type"]  # "symbol" or "text"
@@ -349,6 +413,24 @@ def generate_stats_overview(
                         val = differences[pair]
                         value_collectors["difference_metrics"]["top_prop_exclude_invalid"][pair]["all"].append(val)
                         value_collectors["difference_metrics"]["top_prop_exclude_invalid"][pair][option_type].append(val)
+                
+                # Collect values for experiment-specific analysis (only valid measures)
+                # OOC experiment values
+                if "ooc_coordinate_gt_control_by" in differences and option_id not in invalid_measures["ooc_experiment"]:
+                    experiment_value_collectors["ooc"]["symbol_and_text"].append(differences["ooc_coordinate_gt_control_by"])
+                    experiment_value_collectors["ooc"][option_type].append(differences["ooc_coordinate_gt_control_by"])
+                
+                # COT experiment values
+                if "cot_coordinate_gt_control_by" in differences and option_id not in invalid_measures["cot_experiment"]:
+                    experiment_value_collectors["cot"]["symbol_and_text"].append(differences["cot_coordinate_gt_control_by"])
+                    experiment_value_collectors["cot"][option_type].append(differences["cot_coordinate_gt_control_by"])
+                
+                # Elicit vs suppress values
+                if "cot_coordinate_gt_ooc_coordinate_by" in differences:
+                    # This experiment needs both OOC and COT to be valid
+                    if option_id not in invalid_measures["ooc_experiment"] and option_id not in invalid_measures["cot_experiment"]:
+                        experiment_value_collectors["elicit_vs_suppress"]["symbol_and_text"].append(differences["cot_coordinate_gt_ooc_coordinate_by"])
+                        experiment_value_collectors["elicit_vs_suppress"][option_type].append(differences["cot_coordinate_gt_ooc_coordinate_by"])
             
             # Sum counts and collect validity metrics
             for condition in conditions:
@@ -381,43 +463,38 @@ def generate_stats_overview(
     # Use top_prop_exclude_invalid as the primary metric for experiments
     primary_metric = "top_prop_exclude_invalid"
     
+    # Check experiment validity (>20% of measures invalid = experiment invalid)
+    ooc_experiment_valid = len(invalid_measures["ooc_experiment"]) / total_measures <= invalid_threshold if total_measures > 0 else False
+    cot_experiment_valid = len(invalid_measures["cot_experiment"]) / total_measures <= invalid_threshold if total_measures > 0 else False
+    all_measures_valid = (len(invalid_measures["all_invalid"]) == 0 and 
+                          len(invalid_measures["ooc_experiment"]) == 0 and 
+                          len(invalid_measures["cot_experiment"]) == 0)
+    
     # OOC Experiment: ooc_coordinate vs control
-    if "ooc_coordinate_gt_control_by" in diff_pairs:
-        ooc_values = {
-            "symbol_and_text": value_collectors["difference_metrics"][primary_metric]["ooc_coordinate_gt_control_by"]["all"],
-            "symbol": value_collectors["difference_metrics"][primary_metric]["ooc_coordinate_gt_control_by"]["symbol"],
-            "text": value_collectors["difference_metrics"][primary_metric]["ooc_coordinate_gt_control_by"]["text"]
-        }
+    if "ooc_coordinate_gt_control_by" in diff_pairs and ooc_experiment_valid:
+        ooc_values = experiment_value_collectors["ooc"]
         ooc_results = run_ooc_experiment(ooc_values, run_ooc_experiment_flag)
     else:
-        # No data available for OOC experiment
+        # No data available or experiment invalid
         ooc_results = run_ooc_experiment({}, False)
     
     # COT Experiment: cot_coordinate vs control
-    if "cot_coordinate_gt_control_by" in diff_pairs:
-        cot_values = {
-            "symbol_and_text": value_collectors["difference_metrics"][primary_metric]["cot_coordinate_gt_control_by"]["all"],
-            "symbol": value_collectors["difference_metrics"][primary_metric]["cot_coordinate_gt_control_by"]["symbol"],
-            "text": value_collectors["difference_metrics"][primary_metric]["cot_coordinate_gt_control_by"]["text"]
-        }
+    if "cot_coordinate_gt_control_by" in diff_pairs and cot_experiment_valid:
+        cot_values = experiment_value_collectors["cot"]
         cot_results = run_cot_experiment(cot_values, run_cot_experiment_flag)
     else:
-        # No data available for COT experiment
+        # No data available or experiment invalid
         cot_results = run_cot_experiment({}, False)
     
     # Third experiment: cot vs ooc (only if both conditions exist)
-    if "cot_coordinate_gt_ooc_coordinate_by" in diff_pairs:
-        elicit_vs_suppress_values = {
-            "symbol_and_text": value_collectors["difference_metrics"][primary_metric]["cot_coordinate_gt_ooc_coordinate_by"]["all"],
-            "symbol": value_collectors["difference_metrics"][primary_metric]["cot_coordinate_gt_ooc_coordinate_by"]["symbol"],
-            "text": value_collectors["difference_metrics"][primary_metric]["cot_coordinate_gt_ooc_coordinate_by"]["text"]
-        }
+    if "cot_coordinate_gt_ooc_coordinate_by" in diff_pairs and ooc_experiment_valid and cot_experiment_valid:
+        elicit_vs_suppress_values = experiment_value_collectors["elicit_vs_suppress"]
         elicit_vs_suppress_results = run_elicit_vs_suppress_experiment(
             elicit_vs_suppress_values, 
             run_ooc_experiment_flag and run_cot_experiment_flag
         )
     else:
-        # No data available for elicit vs suppress experiment
+        # No data available or one/both experiments invalid
         elicit_vs_suppress_results = run_elicit_vs_suppress_experiment({}, False)
     
     # Build difference metrics for backward compatibility
@@ -479,6 +556,20 @@ def generate_stats_overview(
                 "text": { f"{cond}_stats": calculate_stats(value_collectors["absolute_metrics"][metric][cond]["text"]) for cond in conditions }
             }
             for metric in metrics
+        },
+        "experiment_validity": {
+            "invalid_measures": {
+                "ooc_experiment": invalid_measures["ooc_experiment"],
+                "cot_experiment": invalid_measures["cot_experiment"],
+                "all_experiments": invalid_measures["all_invalid"]
+            },
+            "experiment_valid": {
+                "ooc_experiment": ooc_experiment_valid,
+                "cot_experiment": cot_experiment_valid,
+                "all_measures_valid": all_measures_valid
+            },
+            "total_measures": total_measures,
+            "invalid_threshold": invalid_threshold
         }
     }
     

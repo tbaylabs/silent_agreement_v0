@@ -3,3 +3,9 @@ env/
 __pycache__/
 *.pyc
 .aider*
+
+# Test results folder (for quick-test and test modes)
+test_results/
+
+# Recent result is temporary
+recent_result/
