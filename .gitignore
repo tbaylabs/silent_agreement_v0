@@ -9,3 +9,6 @@ test_results/
 
 # Recent result is temporary
 recent_result/
+
+# Claude Code local documentation
+claude.local.md
