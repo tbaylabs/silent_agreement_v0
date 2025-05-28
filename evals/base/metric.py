@@ -2,18 +2,17 @@ from inspect_ai.scorer import metric, Metric, SampleScore
 from typing import Dict
 import json
 from results_generators import generate_options_results, generate_stats_overview
+from utils import DEFAULT_SAMPLES_PER_TRIAL_BLOCK, load_options_lists
 
 @metric 
 def sa_metrics() -> Metric:
     """Returns scores for each condition-option_id combination."""
     def metric_func(scores: list[SampleScore]) -> Dict[str, float]:
         # Load options lists
-        options_file = "dataset_generation/options_lists/options_lists.json"
-        with open(options_file) as f:
-            options_lists = json.load(f)
+        options_lists = load_options_lists()
 
         # Get expected samples per trial block from metadata or use default
-        expected_samples = scores[0].sample_metadata.get("samples_per_trial_block", 120) if scores else 120
+        expected_samples = scores[0].sample_metadata.get("samples_per_trial_block", DEFAULT_SAMPLES_PER_TRIAL_BLOCK) if scores else DEFAULT_SAMPLES_PER_TRIAL_BLOCK
         
         # In test mode, we might be running a subset of options
         # Test mode is determined by the scorer, not from metadata

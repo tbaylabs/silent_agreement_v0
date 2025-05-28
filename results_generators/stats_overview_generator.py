@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np
 from scipy import stats
+from utils import INVALID_THRESHOLD, SIGNIFICANCE_LEVEL
 
 def calculate_stats(values: list[float]) -> Dict[str, float]:
     """Calculate mean and standard deviation."""
@@ -18,37 +19,11 @@ def calculate_stats(values: list[float]) -> Dict[str, float]:
         "sd": round(float(sd), 3),
     }
 
-def calculate_token_stats(token_stats_list: list[Dict]) -> Dict[str, float]:
-    """Calculate aggregated token statistics from a list of token stat dictionaries."""
-    if not token_stats_list:
-        return {}
-    
-    # Collect all values for each metric
-    means = [stats.get("mean", 0) for stats in token_stats_list if stats]
-    medians = [stats.get("median", 0) for stats in token_stats_list if stats]
-    q1s = [stats.get("q1", 0) for stats in token_stats_list if stats]
-    q3s = [stats.get("q3", 0) for stats in token_stats_list if stats]
-    mins = [stats.get("min", 0) for stats in token_stats_list if stats]
-    maxs = [stats.get("max", 0) for stats in token_stats_list if stats]
-    
-    if not means:  # No valid data
-        return {}
-    
-    return {
-        "mean": round(np.mean(means), 3),
-        "median": round(np.median(medians), 3),
-        "q1": round(np.median(q1s), 3),
-        "q3": round(np.median(q3s), 3),
-        "min": int(min(mins)),
-        "max": int(max(maxs)),
-        "range": [int(min(mins)), int(max(maxs))]
-    }
-
 def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     """
     Perform a one-sided t-test for H₁: mean > 0.
     Returns statistics including one-tailed p-value and CI lower bound.
-    The result is considered significant if one_tail_p_value < 0.05 and one_tail_ci_95_lower > 0.
+    The result is considered significant if one_tail_p_value < SIGNIFICANCE_LEVEL and one_tail_ci_95_lower > 0.
     """
     if not values:
         return {
@@ -88,7 +63,7 @@ def calculate_one_sample_ttest(values: list[float]) -> Dict[str, Any]:
     # Since the test is one-sided (only interested if mean > 0), there's no finite upper bound.
     ci_upper = None
 
-    significant = (p_value < 0.05) and (ci_lower is not None and ci_lower > 0)
+    significant = (p_value < SIGNIFICANCE_LEVEL) and (ci_lower is not None and ci_lower > 0)
 
     return {
         "mean": round(float(mean), 3),
@@ -260,7 +235,7 @@ def generate_stats_overview(
                 return None
 
     # First pass: identify invalid trial blocks and measures
-    invalid_threshold = 0.2  # 20% threshold
+    invalid_threshold = INVALID_THRESHOLD  # From constants
     invalid_measures = {
         "ooc_experiment": [],  # Measures invalid for OOC experiment
         "cot_experiment": [],  # Measures invalid for COT experiment

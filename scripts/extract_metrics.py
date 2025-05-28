@@ -2,10 +2,8 @@
 import json
 import os
 import glob
-import re
 import matplotlib.pyplot as plt
 import numpy as np
-from math import sqrt
 
 def extract_model_name(path):
     # Extract model name from path like results/claude-3-5-sonnet-20241022/20250222_140448/stats_overview.json
@@ -99,7 +97,7 @@ def create_difference_metric_graph(results, metric_key, output_filename, is_elic
 
 def main():
     # Find all stats_overview.json files
-    json_files = glob.glob('results/*/*/stats_overview.json')
+    json_files = glob.glob('data/results/*/*/stats_overview.json')
     
     results = {}
     

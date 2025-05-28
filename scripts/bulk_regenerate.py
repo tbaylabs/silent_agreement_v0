@@ -52,13 +52,13 @@ def main():
     # Determine which directories to process
     base_dirs = []
     if args.results:
-        base_dirs.append("results")
+        base_dirs.append("data/results")
     if args.test_results:
-        base_dirs.append("test_results")
+        base_dirs.append("data/test_results")
     
     # If neither specified, process both
     if not base_dirs:
-        base_dirs = ["results", "test_results"]
+        base_dirs = ["data/results", "data/test_results"]
     
     # Find all eval files
     eval_files = find_eval_files(base_dirs)

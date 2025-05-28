@@ -1,5 +1,6 @@
 from typing import Dict, Any, List
 from datetime import datetime
+from utils import DEFAULT_SAMPLES_PER_TRIAL_BLOCK
 
 
 def generate_markdown_report(
@@ -16,7 +17,7 @@ def generate_markdown_report(
     # Extract test configuration
     task_args = eval_log.eval.task_args if hasattr(eval_log.eval, 'task_args') else {}
     option_ids = task_args.get('option_ids', None)
-    samples_per_trial_block = task_args.get('samples_per_trial_block', 120)
+    samples_per_trial_block = task_args.get('samples_per_trial_block', DEFAULT_SAMPLES_PER_TRIAL_BLOCK)
     run_ooc = task_args.get('run_ooc_experiment', True)
     run_cot = task_args.get('run_cot_experiment', True)
     
@@ -50,7 +51,7 @@ def generate_markdown_report(
     
     # Start building the report
     report = []
-    report.append("# Silent Agreement v0 Evaluation Report\n")
+    report.append("# Silent Agreement v1 Evaluation Report\n")
     
     # Add warning for test results
     if samples_per_trial_block < 20 or num_option_sets < 20:

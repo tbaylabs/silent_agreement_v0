@@ -13,6 +13,7 @@ from inspect_ai.log import read_eval_log
 from inspect_ai.scorer import SampleScore
 from . import generate_options_results, generate_stats_overview
 from .markdown_report_generator import generate_markdown_report
+from utils import load_options_lists
 
 
 def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = False) -> bool:
@@ -45,10 +46,7 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         output_dir = os.path.dirname(eval_log_path)
         
         # Load options list for metadata
-        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        options_file = os.path.join(script_dir, 'dataset_generation/options_lists/options_lists.json')
-        with open(options_file, 'r') as f:
-            options_lists = json.load(f)
+        options_lists = load_options_lists()
         
         print(f"Processing {len(log.samples)} samples...")
         
