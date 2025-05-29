@@ -79,8 +79,23 @@ rm -rf ../silent_agreement_v0_[feature-name]
 claude
 ```
 
+## Running Scripts in Worktrees
+
+When working in a git worktree, Python scripts need to be run with the correct module path. Use this approach:
+
+```bash
+# From within the worktree directory, run scripts with inline PYTHONPATH
+PYTHONPATH=. python scripts/run_base_eval.py <model> <test_mode>
+
+# Example: Quick test with Groq Llama 3.3
+PYTHONPATH=. python scripts/run_base_eval.py groq/llama-3.3-70b-versatile quick-test
+```
+
+This sets the Python path for just that command execution, allowing the script to find the project modules.
+
 ## Notes
 - This file (CLAUDE.md) is tracked by git and contains project instructions
 - Each Claude Code instance can work in parallel using separate worktrees
 - Always merge back to `version_1`, not `main`
 - All directory navigation and cleanup requires manual user action due to Claude's security restrictions
+- Use `PYTHONPATH=.` prefix when running Python scripts in worktrees
