@@ -1,0 +1,5 @@
+inspect-ai
+python-dotenv
+numpy
+scipy
+matplotlib
