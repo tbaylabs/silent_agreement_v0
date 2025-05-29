@@ -3,3 +3,4 @@ python-dotenv
 numpy
 scipy
 matplotlib
+groq
