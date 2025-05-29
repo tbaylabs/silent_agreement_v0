@@ -140,8 +140,17 @@ def generate_markdown_report(
         invalid_threshold = validity_data["invalid_threshold"]
         
         # Overall validity status
-        if experiment_valid["all_measures_valid"]:
-            report.append("✅ **Perfect validity**: All measures across all experiments are valid.\n")
+        # Check if truly perfect (no warnings AND all responses valid)
+        is_perfect_validity = (experiment_valid["all_measures_valid"] and 
+                              total_ooc_invalid == 0 and 
+                              total_illegible_invalid == 0 and 
+                              total_ooc_warning == 0)
+        
+        if is_perfect_validity:
+            report.append("✅ **Perfect validity**: All trial blocks pass threshold validity with no warnings.\n")
+            report.append("This means answers were legible for all questions and reasoning was not provided by the model in any of the out-of-context cases.\n")
+        elif experiment_valid["all_measures_valid"]:
+            report.append("✅ **All trial blocks pass threshold validity**: Experiments are valid for analysis.\n")
         else:
             report.append("⚠️ **Partial validity**: Some measures contain invalid trial blocks.\n")
         
@@ -357,7 +366,15 @@ def generate_markdown_report(
             grouped_invalid[key].append(invalid)
         
         for key in sorted(grouped_invalid.keys()):
+            option_id = key.split(' - ')[0]
             report.append(f"\n### {key}")
+            
+            # Add options list for this trial block
+            if option_id in options_results and 'options_list' in options_results[option_id]:
+                options_list = options_results[option_id]['options_list']
+                options_str = ', '.join(options_list)
+                report.append(f"\n**Options:** {options_str}\n")
+            
             for invalid in grouped_invalid[key]:
                 report.append(f"\n**Type:** {invalid['type']}  ")
                 report.append(f"**Response:** `{invalid['response']}`\n")
