@@ -8,7 +8,7 @@ import hashlib
 from typing import Dict, Any
 from pathlib import Path
 
-from dataset_generation.chat_message_builder import (
+from dataset_generation.base.base_conditions import (
     create_chat_messages,
     ExperimentCondition,
     build_base_prompt
@@ -101,7 +101,7 @@ def generate_and_save_prompt_hashes(output_path: Path = None) -> None:
                     in the dataset_generation directory)
     """
     if output_path is None:
-        output_path = Path(__file__).parent / "sample_prompts_hashes.json"
+        output_path = Path(__file__).parent / "base_prompts_hashes.json"
     
     # Generate sample prompts
     all_prompts = generate_sample_prompts()
@@ -147,7 +147,7 @@ def verify_prompt_version(version: str = "v1_standard") -> bool:
         RuntimeError: If verification fails with details
     """
     # Load saved hashes
-    hash_file = Path(__file__).parent / "sample_prompts_hashes.json"
+    hash_file = Path(__file__).parent / "base_prompts_hashes.json"
     
     if not hash_file.exists():
         raise RuntimeError(
@@ -201,7 +201,7 @@ def generate_prompt_documentation(input_path: Path = None, output_path: Path = N
         output_path: Path to save the markdown file (defaults to PROMPTS.md)
     """
     if input_path is None:
-        input_path = Path(__file__).parent / "sample_prompts_hashes.json"
+        input_path = Path(__file__).parent / "base_prompts_hashes.json"
     
     if output_path is None:
         output_path = Path(__file__).parent / "PROMPTS.md"

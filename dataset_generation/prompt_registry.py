@@ -9,7 +9,7 @@ from typing import Dict, Any, Type, List
 from pathlib import Path
 from enum import Enum
 
-from dataset_generation.chat_message_builder import create_chat_messages
+from dataset_generation.base.base_conditions import create_chat_messages
 
 
 class PromptRegistry:
