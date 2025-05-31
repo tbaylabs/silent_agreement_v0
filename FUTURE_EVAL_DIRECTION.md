@@ -251,6 +251,27 @@ scripts/
 
 **Phase 1 is now complete! All shared components are implemented and tested.**
 
+## Phase 2B Implementation Status
+
+### ✅ Completed:
+- ✅ `evals/framework/effort_config.py` - Effort-based configuration
+- ✅ `scripts/run_effort_reasoning_eval.py` - Effort-based runner script  
+- ✅ Framework integration with reasoning_effort parameters
+- ✅ OpenAI o-series model support with reasoning summaries
+- ✅ Grok model support with effort-based reasoning
+- ✅ Test mode support (quick-test, test, full evaluation)
+- ✅ Results processing with effort-specific analysis
+- ✅ Model validation and parameter handling
+- ✅ Complete CLI interface with help documentation
+
+**Phase 2B is now complete! Effort-based reasoning evaluations are ready for OpenAI o-series and Grok models.**
+
+Key features implemented:
+- **Configurable effort levels**: low, medium, high reasoning effort
+- **Model-specific parameters**: Automatic reasoning summary and response storage for OpenAI
+- **Comprehensive test modes**: From quick-test (30 samples) to full production runs
+- **Results analysis**: Effort-specific metrics and reasoning efficiency analysis
+
 ## Testing Plans
 
 ### Token-Based Reasoning Tests

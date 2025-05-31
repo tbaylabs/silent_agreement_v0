@@ -6,3 +6,4 @@ matplotlib
 groq
 anthropic
 tabulate
+openai
