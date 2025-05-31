@@ -75,6 +75,10 @@ def detect_model_family(model_name: str) -> ModelFamily:
     if "claude-3-7" in model_lower or "claude-4" in model_lower:
         return ModelFamily.REASONING
     
+    # DeepSeek R1 models (support reasoning content via <think> tags)
+    elif "deepseek-r1" in model_lower:
+        return ModelFamily.REASONING
+    
     # OpenAI o-series models  
     elif any(pattern in model_lower for pattern in ["openai/o1", "openai/o3", "openai/o4", "/o1-", "/o3-", "/o4-"]):
         return ModelFamily.EFFORT_BASED
@@ -158,6 +162,7 @@ if __name__ == "__main__":
     test_models = [
         "anthropic/claude-3-5-sonnet-20241022",
         "anthropic/claude-3-7-sonnet-20250219", 
+        "openrouter/deepseek/deepseek-r1-0528",
         "openai/o1-preview",
         "openai/gpt-4o",
         "groq/llama-3.3-70b-versatile"
