@@ -49,14 +49,16 @@ class EvalRunner:
             task_factory = self.config.get_task_factory()
             eval_params = self.config.get_eval_params(parsed_args)
             
-            # Get reasoning configuration if needed
-            reasoning_config = self.config.get_reasoning_config(model_name, parsed_args)
+            # Get model-specific parameters if config supports it
+            additional_params = {}
+            if hasattr(self.config, 'get_model_specific_params'):
+                additional_params = self.config.get_model_specific_params(model_name)
             
             # Run the evaluation
             eval_kwargs = {
                 "model": model_name,
                 "log_dir": model_log_dir,
-                **reasoning_config
+                **additional_params
             }
             
             logs = eval(task_factory(**eval_params), **eval_kwargs)
@@ -178,3 +180,27 @@ class EvalRunner:
         
         if copied_files:
             print(f"📄 Results copied to recent_result: {', '.join(copied_files)}")
+
+
+def run_evaluation(model_name: str, config: EvalConfig, args: List[str]) -> str:
+    """
+    Convenience function to run an evaluation with the given configuration.
+    
+    Args:
+        model_name: Name of the model to evaluate
+        config: Evaluation configuration
+        args: Command line arguments
+        
+    Returns:
+        Path to the generated .eval file
+    """
+    runner = EvalRunner(config)
+    runner.run(model_name, args)
+    
+    # Return the path to the generated eval file
+    import glob
+    eval_files = glob.glob("recent_result/*.eval")
+    if eval_files:
+        return eval_files[0]
+    else:
+        raise RuntimeError("No .eval file found in recent_result directory")
