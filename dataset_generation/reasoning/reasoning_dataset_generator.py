@@ -69,7 +69,8 @@ def generate_reasoning_datasets(
             option_id=option_id,
             options_lists=options_lists,
             conditions=conditions,  # Use reasoning conditions
-            samples_per_trial_block=samples_per_trial_block
+            samples_per_trial_block=samples_per_trial_block,
+            is_reasoning_eval=True  # Use reasoning prompts
         )
         
         all_samples.extend(dataset.samples)

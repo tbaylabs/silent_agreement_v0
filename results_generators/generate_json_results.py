@@ -16,13 +16,15 @@ from .markdown_report_generator import generate_markdown_report
 from utils import load_options_lists
 
 
-def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = False) -> bool:
+def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = False, skip_experiment_report: bool = False, skip_experiment_results: bool = False) -> bool:
     """
     Generate JSON results files from an eval log.
     
     Args:
         eval_log_path: Path to the .eval log file
         force_overwrite: If True, skip confirmation prompts and overwrite existing files
+        skip_experiment_report: If True, skip generating experiment_report.md (for reasoning evaluations)
+        skip_experiment_results: If True, skip generating experiment_results.json (for reasoning evaluations)
         
     Returns:
         bool: True if successful, False if failed
@@ -41,6 +43,7 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         task_args = log.eval.task_args if hasattr(log.eval, 'task_args') else {}
         run_ooc_experiment = task_args.get('run_ooc_experiment', True)
         run_cot_experiment = task_args.get('run_cot_experiment', True)
+        reasoning_type = task_args.get('reasoning_type', None)  # 'tokens' or 'effort' for reasoning evals
         
         # Get output directory (same as eval log)
         output_dir = os.path.dirname(eval_log_path)
@@ -58,9 +61,15 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
             token_count = len(completion.split()) if completion else 0
             
             # Get existing score and add token count to metadata
-            # Access the 'validator' score from the scores dict
-            if hasattr(sample, 'scores') and isinstance(sample.scores, dict) and 'validator' in sample.scores:
-                existing_score = sample.scores['validator']
+            # Access the 'validator' or 'reasoning_validator' score from the scores dict
+            if hasattr(sample, 'scores') and isinstance(sample.scores, dict):
+                if 'validator' in sample.scores:
+                    existing_score = sample.scores['validator']
+                elif 'reasoning_validator' in sample.scores:
+                    existing_score = sample.scores['reasoning_validator']
+                else:
+                    # If neither validator is found, use the first score
+                    existing_score = list(sample.scores.values())[0] if sample.scores else None
             else:
                 existing_score = sample.scores if hasattr(sample, 'scores') else sample.score
             
@@ -139,14 +148,28 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
             warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered")
             
             print("Generating options results...")
-            options_results = generate_options_results(grouped_scores)
+            # Detect if this is a reasoning evaluation based on reasoning_type in task args
+            is_reasoning_eval = reasoning_type is not None
+            options_results = generate_options_results(grouped_scores, is_reasoning_eval=is_reasoning_eval)
             
-            print("Generating experiment results...")
-            stats_overview = generate_stats_overview(
-                options_results, 
-                run_ooc_experiment_flag=run_ooc_experiment,
-                run_cot_experiment_flag=run_cot_experiment
-            )
+            # Generate experiment results if not skipped
+            stats_overview = None
+            if not skip_experiment_results:
+                print("Generating experiment results...")
+                # Determine eval_type for stats overview
+                if is_reasoning_eval:
+                    # Convert 'tokens' to 'token' for consistency with stats generator
+                    eval_type = 'token' if reasoning_type == 'tokens' else reasoning_type
+                else:
+                    eval_type = 'base'
+                    
+                stats_overview = generate_stats_overview(
+                    options_results, 
+                    run_ooc_experiment_flag=run_ooc_experiment,
+                    run_cot_experiment_flag=run_cot_experiment,
+                    is_reasoning_eval=is_reasoning_eval,
+                    eval_type=eval_type
+                )
         
         # Add canary notice to all results
         canary_notice = {
@@ -164,9 +187,10 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         # Check if files already exist and warn user
         existing_files = []
         json_files = ["options_results.json"]
-        if stats_overview:
+        if stats_overview and not skip_experiment_results:
             json_files.append("experiment_results.json")
-        json_files.append("experiment_report.md")
+        if not skip_experiment_report:
+            json_files.append("experiment_report.md")
         
         for filename in json_files:
             if os.path.exists(filename):
@@ -206,7 +230,7 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         with open("options_results.json", "w", encoding='utf-8') as f:
             json.dump(options_results_with_canary, f, indent=2, ensure_ascii=False)
         
-        if stats_overview:
+        if stats_overview and not skip_experiment_results:
             print("Writing experiment_results.json...")
             with open("experiment_results.json", "w", encoding='utf-8') as f:
                 json.dump(
@@ -217,13 +241,19 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
                     default=lambda o: o.item() if hasattr(o, "item") else o
                 )
         
-        # Generate and write markdown report
-        print("Writing experiment_report.md...")
-        markdown_report = generate_markdown_report(log, options_results, stats_overview)
-        with open("experiment_report.md", 'w', encoding='utf-8') as f:
-            f.write(markdown_report)
+        # Generate and write markdown report (skip for reasoning evaluations)
+        if not skip_experiment_report:
+            print("Writing experiment_report.md...")
+            markdown_report = generate_markdown_report(log, options_results, stats_overview)
+            with open("experiment_report.md", 'w', encoding='utf-8') as f:
+                f.write(markdown_report)
         
-        print("✅ Successfully generated all JSON files and markdown report")
+        if skip_experiment_report and skip_experiment_results:
+            print("✅ Successfully generated options results only")
+        elif skip_experiment_report:
+            print("✅ Successfully generated all JSON files")
+        else:
+            print("✅ Successfully generated all JSON files and markdown report")
         
         # Restore original working directory
         os.chdir(original_cwd)
