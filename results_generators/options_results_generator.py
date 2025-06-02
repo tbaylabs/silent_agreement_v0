@@ -122,55 +122,56 @@ def generate_options_results(grouped_scores: Dict[str, Dict], is_reasoning_eval:
             "response_distribution": response_dist_with_invalids
         }
     
-    # Second pass: calculate differences and check validity
+    # Second pass: calculate differences
     for option_data in options_grouped.values():
         overview = option_data.get("_temp_overview", {})
+        top_prop_values = overview.get("top_prop_exclude_invalid", {})
         
-        # Calculate differences for whichever conditions exist
-        control_exists = "control" in overview.get("top_prop_exclude_invalid", {})
-        # Support both base and reasoning condition names
-        suppress_exists = ("ooc_coordinate" in overview.get("top_prop_exclude_invalid", {}) or 
-                          "coordinate_only" in overview.get("top_prop_exclude_invalid", {}))
-        elicit_exists = ("cot_coordinate" in overview.get("top_prop_exclude_invalid", {}) or
-                        "coordinate_elicit_thought" in overview.get("top_prop_exclude_invalid", {}))
+        # Get control value (same for both eval types)
+        control_value = top_prop_values.get("control", 0)
         
-        if control_exists:  # Control should always exist
-            differences = {}
+        differences = {}
+        
+        if is_reasoning_eval:
+            # Reasoning eval: calculate differences using reasoning condition names
+            coordinate_only_value = top_prop_values.get("coordinate_only", 0)
+            coordinate_elicit_value = top_prop_values.get("coordinate_elicit_thought", 0)
             
-            # OOC experiment: ooc_coordinate vs control
-            if suppress_exists:
-                # Get the value for whichever condition name exists
-                ooc_value = (overview["top_prop_exclude_invalid"].get("ooc_coordinate") or
-                            overview["top_prop_exclude_invalid"].get("coordinate_only"))
-                differences["ooc_coordinate_gt_control_by"] = round(
-                    ooc_value - overview["top_prop_exclude_invalid"]["control"],
-                    3
-                )
+            # Experiment 1: coordinate_only vs control
+            differences["coordinate_only_gt_control_by"] = round(
+                coordinate_only_value - control_value, 3
+            )
             
-            # COT experiment: cot_coordinate vs control
-            if elicit_exists:
-                # Get the value for whichever condition name exists
-                cot_value = (overview["top_prop_exclude_invalid"].get("cot_coordinate") or
-                            overview["top_prop_exclude_invalid"].get("coordinate_elicit_thought"))
-                differences["cot_coordinate_gt_control_by"] = round(
-                    cot_value - overview["top_prop_exclude_invalid"]["control"],
-                    3
-                )
+            # Experiment 2: coordinate_elicit_thought vs control
+            differences["coordinate_elicit_thought_gt_control_by"] = round(
+                coordinate_elicit_value - control_value, 3
+            )
             
-            # Third experiment: cot vs ooc (only if both exist)
-            if suppress_exists and elicit_exists:
-                ooc_value = (overview["top_prop_exclude_invalid"].get("ooc_coordinate") or
-                            overview["top_prop_exclude_invalid"].get("coordinate_only"))
-                cot_value = (overview["top_prop_exclude_invalid"].get("cot_coordinate") or
-                            overview["top_prop_exclude_invalid"].get("coordinate_elicit_thought"))
-                differences["cot_coordinate_gt_ooc_coordinate_by"] = round(
-                    cot_value - ooc_value,
-                    3
-                )
+            # Experiment 3: coordinate_elicit_thought vs coordinate_only
+            differences["coordinate_elicit_thought_gt_coordinate_only_by"] = round(
+                coordinate_elicit_value - coordinate_only_value, 3
+            )
+        else:
+            # Base eval: calculate differences using base condition names
+            ooc_value = top_prop_values.get("ooc_coordinate", 0)
+            cot_value = top_prop_values.get("cot_coordinate", 0)
             
-            # Only add differences if at least one comparison was made
-            if differences:
-                option_data["top_prop_exclude_invalid_differences"] = differences
+            # Experiment 1: ooc_coordinate vs control
+            differences["ooc_coordinate_gt_control_by"] = round(
+                ooc_value - control_value, 3
+            )
+            
+            # Experiment 2: cot_coordinate vs control
+            differences["cot_coordinate_gt_control_by"] = round(
+                cot_value - control_value, 3
+            )
+            
+            # Experiment 3: cot_coordinate vs ooc_coordinate
+            differences["cot_coordinate_gt_ooc_coordinate_by"] = round(
+                cot_value - ooc_value, 3
+            )
+        
+        option_data["top_prop_exclude_invalid_differences"] = differences
         
         # Remove temporary overview data
         if "_temp_overview" in option_data:

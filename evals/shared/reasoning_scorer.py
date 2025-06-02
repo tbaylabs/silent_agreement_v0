@@ -3,10 +3,8 @@ Reasoning-specific scorer that handles validation for reasoning model evaluation
 """
 
 from inspect_ai.scorer import scorer, Score
-from typing import Dict, List
 import re
 # Remove old metrics import - metrics are now handled in each evaluation type
-import json
 from utils import load_options_lists
 from scripts.match_by_llm import match_by_llm
 
@@ -43,12 +41,6 @@ def reasoning_validator(extractor_model_name: str = "groq/llama-3.3-70b-versatil
         # Initialize metadata
         score_metadata = {
             "verified_valid_by_rule": None,
-            "llm_match_attempted": None,
-            "extractor_model_name": None,
-            "verified_valid_by_llm": None,
-            "verified_invalid_by_llm": None,
-            "llm_match_failed": None,
-            "match_log": None,
             "token_count": token_count,
             "condition": condition,
             "is_reasoning_eval": True,  # Mark this as a reasoning evaluation

@@ -66,12 +66,6 @@ def validator(# extractor_model_name: str = "anthropic/claude-3-5-haiku-20241022
         # Initialize metadata
         score_metadata = {
             "verified_valid_by_rule": None,
-            "llm_match_attempted": None,
-            "extractor_model_name": None,
-            "verified_valid_by_llm": None,
-            "verified_invalid_by_llm": None,
-            "llm_match_failed": None,
-            "match_log": None,
             "token_count": token_count,
             "ooc_validity": ooc_validity,
             "ooc_token_limit": max_expected_tokens,

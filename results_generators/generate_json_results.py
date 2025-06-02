@@ -39,10 +39,6 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
             print(f"Warning: Eval log status is '{log.status}', not 'success'")
             return False
         
-        # Extract experiment flags from task args
-        task_args = log.eval.task_args if hasattr(log.eval, 'task_args') else {}
-        run_ooc_experiment = task_args.get('run_ooc_experiment', True)
-        run_cot_experiment = task_args.get('run_cot_experiment', True)
         
         # Detect reasoning evaluation type from task name
         reasoning_type = None
@@ -172,8 +168,6 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
                     
                 stats_overview = generate_stats_overview(
                     options_results, 
-                    run_ooc_experiment_flag=run_ooc_experiment,
-                    run_cot_experiment_flag=run_cot_experiment,
                     is_reasoning_eval=is_reasoning_eval,
                     eval_type=eval_type
                 )

@@ -11,7 +11,6 @@ from enum import Enum
 
 from dataset_generation.base.base_conditions import create_chat_messages
 
-
 class PromptRegistry:
     """Generic registry for managing prompt versions across evaluation types."""
     
