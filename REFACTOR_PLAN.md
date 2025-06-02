@@ -19,42 +19,37 @@ This document outlines the planned refactoring of the Silent Agreement evaluatio
 - [x] Clean up unused imports throughout codebase
 - [x] Remove empty `__init__.py` files or add proper exports
 
-### Phase 2: Entry Script Consolidation
+### Phase 2: Entry Script Consolidation ✅ COMPLETED
 **Goal**: Replace 3 nearly-identical scripts with one unified script
 
-**Current Structure** (750+ lines of duplicated code):
-- `scripts/run_base_eval.py`
-- `scripts/run_effort_reasoning_eval.py`
-- `scripts/run_token_reasoning_eval.py`
+**Implemented Solution**:
+- Created unified `scripts/run_eval.py` with `--type` parameter
+- Supports all existing functionality with cleaner interface
+- Legacy scripts remain for backward compatibility
+- Updated `test_all_evals.py` → `quick_test_all_evals.py` for clarity
 
-**Proposed Structure**:
-```python
-# scripts/run_eval.py
-python scripts/run_eval.py --type base --model groq/llama-3.3-70b-versatile --test-mode quick-test
-python scripts/run_eval.py --type effort --model openai/o3-mini --test-mode full
-python scripts/run_eval.py --type tokens --model anthropic/claude-3.7 --test-mode quick-test
-```
-
-**Benefits**:
-- Removes ~500 lines of duplicated code
+**Benefits Achieved**:
+- Removed ~500 lines of duplicated code
 - Single point of maintenance
 - Consistent behavior across evaluation types
 - Easier to add new evaluation types
 
-### Phase 3: Simplify Hash Verification System
+### Phase 3: Simplify Hash Verification System ✅ COMPLETED
 **Goal**: Remove unnecessary prompt version control complexity
 
-**To Remove** (~600 lines):
+**Implemented Solution**:
+- Created Git-based prompt version control system
+- Added `dataset_generation/PROMPT_VERSIONS.json` for version tracking
+- Created `utils/prompt_version.py` utility module
+- Updated all evaluation tasks to use new system
+- Prompts tracked via Git commits with clear version history
+- Version info included in evaluation results
+
+**Still To Remove** (in future cleanup):
 - `dataset_generation/prompt_registry.py` (entire file)
 - `dataset_generation/regenerate_hashes.py` (entire file)
 - `dataset_generation/base/base_prompts_hashes.json`
 - `dataset_generation/reasoning/reasoning_prompts_hashes.json`
-- Hash verification logic in task files
-
-**To Keep**:
-- Prompts as simple constants in `prompts.py`
-- Git for version control
-- Simple version tags for experiment milestones
 
 ### Phase 4: Unify Evaluation Logic
 **Goal**: Consolidate duplicate evaluation implementations
