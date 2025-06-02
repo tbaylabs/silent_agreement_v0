@@ -70,12 +70,12 @@ def main():
             log_dir=model_log_dir
         )
         
-        # Process results (generate options_results.json and experiment_results.json)
+        # Process results (generate all results including experiment report)
         def results_processor(eval_file_path: str, force_overwrite: bool = False) -> bool:
             return generate_json_results_from_eval(
                 eval_file_path, 
                 force_overwrite=force_overwrite,
-                skip_experiment_report=True,
+                skip_experiment_report=False,
                 skip_experiment_results=False
             )
         

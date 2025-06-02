@@ -244,7 +244,19 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         # Generate and write markdown report (skip for reasoning evaluations)
         if not skip_experiment_report:
             print("Writing experiment_report.md...")
-            markdown_report = generate_markdown_report(log, options_results, stats_overview)
+            # Determine eval_type for report
+            if is_reasoning_eval:
+                report_eval_type = 'token' if reasoning_type == 'tokens' else reasoning_type
+            else:
+                report_eval_type = 'base'
+                
+            markdown_report = generate_markdown_report(
+                log, 
+                options_results, 
+                stats_overview,
+                is_reasoning_eval=is_reasoning_eval,
+                eval_type=report_eval_type
+            )
             with open("experiment_report.md", 'w', encoding='utf-8') as f:
                 f.write(markdown_report)
         
