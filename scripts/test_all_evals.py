@@ -18,7 +18,7 @@ BLUE = '\033[94m'
 RESET = '\033[0m'
 BOLD = '\033[1m'
 
-def run_eval(eval_name, script_path):
+def run_eval(eval_name, eval_type):
     """Run a single evaluation and return the results."""
     print(f"{BLUE}Starting {eval_name}...{RESET}")
     
@@ -27,9 +27,10 @@ def run_eval(eval_name, script_path):
         result = subprocess.run(
             [
                 sys.executable,
-                script_path,
-                "groq/llama-3.3-70b-versatile",
-                "quick-test"
+                "scripts/run_eval.py",
+                "--type", eval_type,
+                "--model", "groq/llama-3.3-70b-versatile",
+                "--test-mode", "quick-test"
             ],
             capture_output=True,
             text=True,
@@ -67,13 +68,13 @@ def main():
     
     # Define the evaluations to run
     evaluations = [
-        ("Base Evaluation", "scripts/run_base_eval.py"),
-        ("Effort Reasoning Evaluation", "scripts/run_effort_reasoning_eval.py"),
-        ("Token Reasoning Evaluation", "scripts/run_token_reasoning_eval.py")
+        ("Base Evaluation", "base"),
+        ("Effort Reasoning Evaluation", "effort"),
+        ("Token Reasoning Evaluation", "tokens")
     ]
     
     # Check that we're in the right directory
-    if not Path("scripts/run_base_eval.py").exists():
+    if not Path("scripts/run_eval.py").exists():
         print(f"{RED}Error: Must run from the silent_agreement_v1 directory!{RESET}")
         print("Please cd to the correct directory and activate the virtual environment.")
         sys.exit(1)
@@ -83,8 +84,8 @@ def main():
     with ThreadPoolExecutor(max_workers=3) as executor:
         # Submit all tasks
         future_to_eval = {
-            executor.submit(run_eval, name, script): name 
-            for name, script in evaluations
+            executor.submit(run_eval, name, eval_type): name 
+            for name, eval_type in evaluations
         }
         
         # Process results as they complete
@@ -127,7 +128,7 @@ def main():
         
         # Show detailed output for failed tests
         failed_tests = [r for r in results if r["status"] != "success"]
-        if failed_tests and input("\nShow detailed output for failed tests? (y/n): ").lower() == 'y':
+        if failed_tests:
             for result in failed_tests:
                 print(f"\n{YELLOW}Detailed output for {result['name']}:{RESET}")
                 print("-" * 50)
