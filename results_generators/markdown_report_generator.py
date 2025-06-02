@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any
 from datetime import datetime
 from utils import DEFAULT_SAMPLES_PER_TRIAL_BLOCK
 from tabulate import tabulate
@@ -201,7 +201,6 @@ def generate_markdown_report(
                 sa_cot = metrics.get("coordinate_elicit_cot_vs_control", {}).get("one_tail_ci_95_lower")
         
         # Display metrics
-        import math
         
         if is_reasoning_eval:
             # Display reasoning evaluation metrics

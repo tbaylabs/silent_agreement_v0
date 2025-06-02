@@ -8,7 +8,6 @@ in the same directory as the eval log file.
 import os
 import sys
 import json
-from pathlib import Path
 from inspect_ai.log import read_eval_log
 from inspect_ai.scorer import SampleScore
 from . import generate_options_results, generate_stats_overview

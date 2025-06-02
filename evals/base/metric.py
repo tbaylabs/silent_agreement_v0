@@ -1,6 +1,5 @@
 from inspect_ai.scorer import metric, Metric, SampleScore
 from typing import Dict
-import json
 from results_generators import generate_options_results, generate_stats_overview
 from utils import DEFAULT_SAMPLES_PER_TRIAL_BLOCK, load_options_lists
 
