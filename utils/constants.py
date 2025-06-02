@@ -15,6 +15,10 @@ INVALID_THRESHOLD = 0.2  # Threshold for marking an experiment as invalid (20% i
 # Token limits
 MAX_EXPECTED_TOKENS_BUFFER = 4  # Additional tokens allowed beyond the expected maximum
 
+# Reasoning token parameters
+LOW_REASONING_TOKENS = 4096  # Token limit for low reasoning effort
+HIGH_REASONING_TOKENS = 32768  # Token limit for high reasoning effort
+
 # Statistical parameters
 SIGNIFICANCE_LEVEL = 0.05  # Alpha level for statistical tests
 MIN_SAMPLES_FOR_STATS = 2  # Minimum samples required for statistical calculations

@@ -77,6 +77,23 @@ python scripts/run_effort_reasoning_eval.py "openai/o4-mini-2025-04-16" quick-te
 
 Test modes are designed for quick validation and debugging. Their results are kept separate in `data/test_results/` to maintain the integrity of the main `data/results/` folder.
 
+## Quick Testing All Evaluations
+
+To quickly verify that all evaluation types are working correctly after making changes:
+
+```bash
+# Run all three evaluation types simultaneously with quick tests
+python scripts/test_all_evals.py
+```
+
+This script:
+- Runs all three evaluation types (base, effort reasoning, token reasoning) in parallel
+- Uses the fast and reliable `groq/llama-3.3-70b-versatile` model
+- Provides a clear pass/fail summary for each evaluation type
+- Helps catch breaking changes before committing code
+
+**Note:** This uses the Groq Llama model for all tests (even reasoning evals) since the goal is to verify the evaluation framework works, not to test actual reasoning capabilities.
+
 ## Bulk Regenerating Results
 
 To regenerate JSON results after code changes:

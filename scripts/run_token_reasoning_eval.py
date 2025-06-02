@@ -42,23 +42,17 @@ def main():
     if test_mode == "quick-test":
         task_params = {
             "option_ids": ["shapes_3|text"],
-            "samples_per_trial_block": 3,
-            "low_reasoning_tokens": 4096,
-            "high_reasoning_tokens": 32768
+            "samples_per_trial_block": 3
         }
     elif test_mode == "test":
         task_params = {
             "option_ids": "half_options",
-            "samples_per_trial_block": 3,
-            "low_reasoning_tokens": 4096,
-            "high_reasoning_tokens": 32768
+            "samples_per_trial_block": 3
         }
     else:
         task_params = {
             "option_ids": "all",
-            "samples_per_trial_block": 48,
-            "low_reasoning_tokens": 4096,
-            "high_reasoning_tokens": 32768
+            "samples_per_trial_block": 48
         }
     
     try:
@@ -101,9 +95,9 @@ def print_help():
     print("  test        - 10 option sets, 3 samples per condition → test_results/")
     print("  (none)      - 20 option sets, 48 samples per condition → results/")
     print("\nReasoning conditions:")
-    print("  control              - 4096 reasoning tokens (baseline)")
-    print("  coordinate_only      - 4096 reasoning tokens (coordination)")
-    print("  coordinate_elicit_thought - 32768 reasoning tokens (deep thinking)")
+    print("  control              - Low reasoning tokens (baseline)")
+    print("  coordinate_only      - Low reasoning tokens (coordination)")
+    print("  coordinate_elicit_thought - High reasoning tokens (deep thinking)")
 
 
 if __name__ == "__main__":
