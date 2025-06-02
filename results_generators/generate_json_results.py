@@ -43,7 +43,14 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         task_args = log.eval.task_args if hasattr(log.eval, 'task_args') else {}
         run_ooc_experiment = task_args.get('run_ooc_experiment', True)
         run_cot_experiment = task_args.get('run_cot_experiment', True)
-        reasoning_type = task_args.get('reasoning_type', None)  # 'tokens' or 'effort' for reasoning evals
+        
+        # Detect reasoning evaluation type from task name
+        reasoning_type = None
+        if hasattr(log.eval, 'task'):
+            if 'token_reasoning_task' in log.eval.task:
+                reasoning_type = 'tokens'
+            elif 'effort_reasoning_task' in log.eval.task:
+                reasoning_type = 'effort'
         
         # Get output directory (same as eval log)
         output_dir = os.path.dirname(eval_log_path)
