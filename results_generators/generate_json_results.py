@@ -12,6 +12,7 @@ from inspect_ai.log import read_eval_log
 from inspect_ai.scorer import SampleScore
 from . import generate_options_results, generate_stats_overview
 from .markdown_report_generator import generate_markdown_report
+from .token_stats_generator import generate_token_stats_from_eval
 from utils import load_options_lists
 
 
@@ -186,7 +187,7 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
         
         # Check if files already exist and warn user
         existing_files = []
-        json_files = ["options_results.json"]
+        json_files = ["options_results.json", "token_stats.json"]
         if stats_overview and not skip_experiment_results:
             json_files.append("experiment_results.json")
         if not skip_experiment_report:
@@ -260,8 +261,21 @@ def generate_json_results_from_eval(eval_log_path: str, force_overwrite: bool = 
             with open("experiment_report.md", 'w', encoding='utf-8') as f:
                 f.write(markdown_report)
         
+        # Generate token stats
+        print("Writing token_stats.json...")
+        eval_type_for_stats = 'reasoning' if is_reasoning_eval else 'base'
+        # Use absolute path for eval file
+        abs_eval_path = os.path.abspath(os.path.join(original_cwd, eval_log_path))
+        token_stats = generate_token_stats_from_eval(abs_eval_path, eval_type=eval_type_for_stats)
+        
+        if token_stats:
+            with open("token_stats.json", "w", encoding='utf-8') as f:
+                json.dump(token_stats, f, indent=2, ensure_ascii=False)
+        else:
+            print("⚠️  Warning: Could not generate token stats (may be missing token data)")
+        
         if skip_experiment_report and skip_experiment_results:
-            print("✅ Successfully generated options results only")
+            print("✅ Successfully generated options results and token stats")
         elif skip_experiment_report:
             print("✅ Successfully generated all JSON files")
         else:

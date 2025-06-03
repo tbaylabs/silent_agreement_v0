@@ -87,7 +87,8 @@ def copy_results_to_recent(eval_file: str, model_log_dir: str, recent_dir: str, 
         'group_results.json', 
         'options_results.json', 
         'experiment_results.json', 
-        'experiment_report.md'
+        'experiment_report.md',
+        'token_stats.json'
     ]
     copied_files = []
     for result_file in result_files:
