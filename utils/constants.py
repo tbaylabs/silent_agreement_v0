@@ -17,7 +17,7 @@ MAX_EXPECTED_TOKENS_BUFFER = 4  # Additional tokens allowed beyond the expected 
 
 # Reasoning token parameters
 LOW_REASONING_TOKENS = 1024  # Token limit for low reasoning effort  
-HIGH_REASONING_TOKENS = 8192  # Token limit for high reasoning effort
+HIGH_REASONING_TOKENS = 4096  # Token limit for high reasoning effort
 
 # Statistical parameters
 SIGNIFICANCE_LEVEL = 0.05  # Alpha level for statistical tests
