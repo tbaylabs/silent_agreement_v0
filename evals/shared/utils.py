@@ -32,7 +32,8 @@ def setup_directories(model_name: str, eval_type: str, test_mode: Optional[str] 
     
     # Set up log directory for this specific run
     # Use test_results folder for test modes, results folder for full runs
-    base_dir = 'data/test_results' if test_mode else 'data/results'
+    # Note: 'full' is not a test mode, it should go to results folder
+    base_dir = 'data/test_results' if test_mode and test_mode != 'full' else 'data/results'
     model_log_dir = os.path.join(base_dir, eval_type, folder_path, timestamp)
     os.makedirs(model_log_dir, exist_ok=True)
     
