@@ -25,4 +25,3 @@ MIN_SAMPLES_FOR_STATS = 2  # Minimum samples required for statistical calculatio
 
 # File paths (relative to project root)
 OPTIONS_LISTS_FILE = 'dataset_generation/options_lists/options_lists.json'
-PROMPT_HASHES_FILE = 'dataset_generation/sample_prompts_hashes.json'

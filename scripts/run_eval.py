@@ -17,7 +17,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from inspect_ai import eval
 from evals.shared.utils import setup_directories, display_run_info, process_eval_results
-from utils.prompt_version import PromptVersion
 from results_generators.generate_json_results import generate_json_results_from_eval
 from dotenv import load_dotenv, find_dotenv
 
@@ -52,11 +51,8 @@ Examples:
   # Run effort reasoning evaluation with quick test
   python scripts/run_eval.py --type effort --model openai/o3-mini --test-mode quick-test
   
-  # Run token reasoning evaluation with specific prompt version
-  python scripts/run_eval.py --type tokens --model anthropic/claude-3.7 --prompt-version reasoning/v2
-  
-  # List available prompt versions
-  python scripts/run_eval.py --list-prompt-versions
+  # Run token reasoning evaluation
+  python scripts/run_eval.py --type tokens --model anthropic/claude-3.7
 """
     )
     
@@ -77,27 +73,6 @@ Examples:
         help='Test mode (default: full)'
     )
     
-    # Prompt version arguments
-    parser.add_argument(
-        '--prompt-version',
-        help='Specific prompt version to use (e.g., base/v1)'
-    )
-    parser.add_argument(
-        '--allow-modified',
-        action='store_true',
-        help='Allow running with modified prompts'
-    )
-    parser.add_argument(
-        '--list-prompt-versions',
-        action='store_true',
-        help='List all available prompt versions and exit'
-    )
-    parser.add_argument(
-        '--create-prompt-version',
-        action='store_true',
-        help='Create new version from current prompt changes'
-    )
-    
     # Additional options
     parser.add_argument(
         '--option-ids',
@@ -106,63 +81,6 @@ Examples:
     )
     
     return parser.parse_args()
-
-
-def list_prompt_versions():
-    """List all available prompt versions."""
-    prompt_version = PromptVersion()
-    versions = prompt_version.list_versions()
-    
-    print("\nAvailable prompt versions:")
-    print("=" * 50)
-    
-    for eval_type, type_data in versions.items():
-        print(f"\n{eval_type}:")
-        latest = type_data['latest']
-        
-        for version, info in sorted(type_data['versions'].items()):
-            is_latest = " [LATEST]" if version == latest else ""
-            print(f"  - {version} ({info['timestamp'][:10]}): {info['description']}{is_latest}")
-
-
-def create_new_prompt_version(eval_type: str):
-    """Interactive prompt version creation."""
-    prompt_version = PromptVersion()
-    
-    # Check for modifications
-    has_mods, modified_files = prompt_version.check_modifications(eval_type)
-    
-    if not has_mods:
-        print(f"No modifications detected for {eval_type} prompts.")
-        return
-    
-    print(f"\nCreating new prompt version for {eval_type}")
-    print("\nModified files:")
-    for file in modified_files:
-        print(f"  - {file}")
-    
-    # Get description from user
-    description = input("\nPlease provide a description for this version: ").strip()
-    
-    if not description:
-        print("Description is required. Aborting.")
-        return
-    
-    # Confirm creation
-    confirm = input(f"\nCreate new version with description: '{description}'? (y/n): ")
-    
-    if confirm.lower() != 'y':
-        print("Version creation cancelled.")
-        return
-    
-    # Create the version
-    new_version = prompt_version.create_new_version(eval_type, description)
-    print(f"\n✅ Created new version: {new_version}")
-    
-    # Suggest committing
-    print("\nDon't forget to commit your changes:")
-    print(f"  git add -A")
-    print(f"  git commit -m 'Create prompt version {new_version}: {description}'")
 
 
 def get_eval_config(eval_type: str):
@@ -230,36 +148,6 @@ def get_task_params(test_mode: str, option_ids: Optional[List[str]] = None):
         }
 
 
-def check_prompt_version(eval_type: str, requested_version: Optional[str], allow_modified: bool):
-    """Check and handle prompt version status."""
-    prompt_version = PromptVersion()
-    
-    # If specific version requested, validate it
-    if requested_version:
-        try:
-            prompt_version.validate_version(requested_version)
-            # TODO: Implement version switching logic here
-            print(f"⚠️  Version switching not yet implemented. Using current version.")
-        except ValueError as e:
-            print(f"❌ Error: {e}")
-            sys.exit(1)
-    
-    # Check for modifications
-    has_mods, modified_files = prompt_version.check_modifications(eval_type)
-    
-    if has_mods and not allow_modified:
-        current_version = prompt_version.get_current_version(eval_type)
-        print(f"\n❌ Error: Prompt files have been modified since {current_version}!")
-        print(f"\nModified files:")
-        for file in modified_files:
-            print(f"  - {file}")
-        print(f"\nOptions:")
-        print(f"  1. Use --allow-modified to proceed anyway")
-        print(f"  2. Create a new version with --create-prompt-version")
-        print(f"  3. Revert your changes")
-        sys.exit(1)
-
-
 def main():
     """Main entry point."""
     # Load environment variables
@@ -267,30 +155,14 @@ def main():
     
     args = parse_arguments()
     
-    # Handle special actions
-    if args.list_prompt_versions:
-        list_prompt_versions()
-        return 0
-    
-    # Validate required arguments for normal operation
+    # Validate required arguments
     if not args.type or not args.model:
-        if args.create_prompt_version:
-            if not args.type:
-                print("Error: --type is required for --create-prompt-version")
-                return 1
-            create_new_prompt_version(args.type)
-            return 0
-        else:
-            print("Error: --type and --model are required")
-            print("Use --help for usage information")
-            return 1
+        print("Error: --type and --model are required")
+        print("Use --help for usage information")
+        return 1
     
     # Get evaluation configuration
     eval_config = get_eval_config(args.type)
-    eval_type_for_version = 'base' if args.type == 'base' else 'reasoning'
-    
-    # Check prompt version
-    check_prompt_version(eval_type_for_version, args.prompt_version, args.allow_modified)
     
     # For reasoning evaluations, check model allowlist first
     if args.type in ['effort', 'tokens', 'prompt']:
