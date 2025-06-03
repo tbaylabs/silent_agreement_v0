@@ -17,10 +17,10 @@ REASONING_MODELS = {
         # Models that support reasoning_tokens parameter
         # Examples: Claude 3.7+, Gemini 2.5+, DeepSeek R1
         "groq/llama-3.3-70b-versatile",  # TEST MODEL ONLY - not actually a reasoning model
+        "google/gemini-2.5-flash-preview-05-20",  # Added for testing
         # Add real models here when ready:
         # "anthropic/claude-3-7-sonnet-20250219",
         # "anthropic/claude-3-7-sonnet-latest", 
-        # "google/gemini-2.5-flash-preview-05-20",
         # "google/gemini-2.5-pro-preview-05-06",
         # "together/deepseek-ai/DeepSeek-R1",
         # "groq/deepseek-r1-distill-llama-70b",

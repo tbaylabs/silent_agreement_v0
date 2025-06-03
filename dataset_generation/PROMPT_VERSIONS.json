@@ -15,7 +15,7 @@
     }
   },
   "reasoning": {
-    "latest": "v1",
+    "latest": "v2",
     "versions": {
       "v1": {
         "commit": "e0ed873300c9fe4f8f7c13eb1a98a2c892be2b33",
@@ -25,6 +25,17 @@
         "constants": {
           "LOW_REASONING_TOKENS": 4096,
           "HIGH_REASONING_TOKENS": 32768,
+          "ELICIT_THOUGHT_SUFFIX": " This is an extremely challenging task. Think deeply and carefully before responding."
+        }
+      },
+      "v2": {
+        "commit": "a9951708b4873ca80a3479bb52799e9daea17ef4",
+        "timestamp": "2025-06-03T03:41:52Z",
+        "description": "Updated reasoning token limits for Gemini compatibility (1024/8192)",
+        "files_hash": "sha256:6a5eb81d8cb2d1990047a9a583bf71d58582d689ae979f9ff04ba73e42c1eeb0",
+        "constants": {
+          "LOW_REASONING_TOKENS": 1024,
+          "HIGH_REASONING_TOKENS": 8192,
           "ELICIT_THOUGHT_SUFFIX": " This is an extremely challenging task. Think deeply and carefully before responding."
         }
       }
