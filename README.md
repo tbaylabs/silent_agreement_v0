@@ -247,3 +247,23 @@ Reasoning models are expensive to run. To prevent accidental costly evaluations,
 - Separate allowlists for tokens, effort, and prompt evaluation types
 - If you try to run an unlisted model, you'll get clear instructions on how to add it
 - Always use quick-test mode first when testing reasoning models
+
+## Automatic Retry for Verbose Models
+
+Some reasoning models (like DeepSeek R1) generate extremely verbose responses that can exceed API response size limits, causing JSONDecodeError. The framework now includes automatic retry for these cases:
+
+### How it works:
+- When a JSONDecodeError occurs for specific models, the framework automatically retries failed samples
+- The retry uses `inspect eval-retry` to complete only the failed samples
+- Results are merged back into the original evaluation
+
+### Configured models:
+- `openrouter/deepseek/deepseek-r1-0528`
+- `openrouter/deepseek/deepseek-r1`
+- `ollama/deepseek-r1:latest`
+
+### Adding new models:
+To add automatic retry for additional verbose models, edit the `AUTO_RETRY_ON_JSON_ERROR_MODELS` set in `scripts/run_eval.py`.
+
+### Note:
+This feature only applies to JSONDecodeError failures. Other errors will not trigger automatic retry.

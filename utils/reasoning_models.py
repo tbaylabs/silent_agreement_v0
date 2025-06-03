@@ -17,7 +17,7 @@ REASONING_MODELS = {
         # Models that support reasoning_tokens parameter
         # Examples: Claude 3.7+, Gemini 2.5+, DeepSeek R1
         "groq/llama-3.3-70b-versatile",  # TEST MODEL ONLY - not actually a reasoning model
-        "google/gemini-2.5-flash-preview-05-20",  # Added for testing
+        # "google/gemini-2.5-flash-preview-05-20",
         # Add real models here when ready:
         # "anthropic/claude-3-7-sonnet-20250219",
         # "anthropic/claude-3-7-sonnet-latest", 
@@ -40,6 +40,7 @@ REASONING_MODELS = {
         # Reasoning models without special parameters
         # Models that do reasoning but don't expose effort/tokens parameters
         "groq/llama-3.3-70b-versatile",  # TEST MODEL ONLY - not actually a reasoning model
+        "openrouter/deepseek/deepseek-r1-0528"
         # Add real models here when ready:
         # "ollama/deepseek-r1:latest",
         # Other reasoning models that use prompt-only approach

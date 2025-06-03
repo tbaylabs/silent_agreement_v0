@@ -7,6 +7,8 @@ Replaces the three separate scripts with a single configurable entry point.
 import argparse
 import sys
 import json
+import subprocess
+import os
 from pathlib import Path
 from typing import Optional, List
 
@@ -26,6 +28,15 @@ from evals.reasoning_tokens.task import token_reasoning_task
 from evals.reasoning_prompt.task import prompt_reasoning_task
 from utils.constants import LOW_REASONING_TOKENS, HIGH_REASONING_TOKENS
 from utils.reasoning_models import check_model_allowed
+
+# Models that should automatically retry on JSONDecodeError
+# These are typically very verbose reasoning models that may hit response size limits
+AUTO_RETRY_ON_JSON_ERROR_MODELS = {
+    "openrouter/deepseek/deepseek-r1-0528",
+    "openrouter/deepseek/deepseek-r1",
+    "ollama/deepseek-r1:latest",
+    # Add other verbose reasoning models here as needed
+}
 
 
 def parse_arguments():
@@ -342,10 +353,66 @@ def main():
         return 0
         
     except Exception as e:
-        print(f"\n❌ Error during evaluation: {e}")
+        # Check if this is a JSONDecodeError and if the model should auto-retry
         import traceback
-        traceback.print_exc()
-        return 1
+        error_str = str(e)
+        traceback_str = traceback.format_exc()
+        is_json_decode_error = (
+            "JSONDecodeError" in error_str or 
+            "json.decoder.JSONDecodeError" in str(type(e)) or
+            "JSONDecodeError" in traceback_str
+        )
+        
+        if is_json_decode_error and args.model in AUTO_RETRY_ON_JSON_ERROR_MODELS:
+            print(f"\n⚠️  JSONDecodeError detected for {args.model}")
+            print("This model is configured for automatic retry on JSON errors.")
+            
+            # Find the most recent eval file in the log directory
+            eval_files = sorted(model_log_dir.glob("*.eval"), key=lambda x: x.stat().st_mtime)
+            if eval_files:
+                eval_file = eval_files[-1]
+                print(f"\nAttempting to retry failed samples from: {eval_file}")
+                
+                # Build the retry command
+                retry_cmd = [
+                    sys.executable, "-m", "inspect", "eval-retry",
+                    "--log-dir", str(model_log_dir),
+                    str(eval_file)
+                ]
+                
+                # Set up environment
+                env = os.environ.copy()
+                env["PYTHONPATH"] = str(Path(__file__).parent.parent)
+                
+                try:
+                    # Run the retry command
+                    print("\nRunning retry command...")
+                    result = subprocess.run(retry_cmd, env=env, capture_output=True, text=True)
+                    
+                    if result.returncode == 0:
+                        print("\n✅ Retry completed successfully!")
+                        
+                        # Process the updated results
+                        process_eval_results(model_log_dir, recent_dir, results_processor)
+                        print(f"\n✅ All files available in: recent_result/")
+                        return 0
+                    else:
+                        print(f"\n❌ Retry failed with return code: {result.returncode}")
+                        print(f"Stdout: {result.stdout}")
+                        print(f"Stderr: {result.stderr}")
+                        return 1
+                        
+                except Exception as retry_error:
+                    print(f"\n❌ Error during retry: {retry_error}")
+                    return 1
+            else:
+                print("\n❌ No eval file found to retry")
+                return 1
+        else:
+            # Original error handling for non-JSON errors or models not in auto-retry list
+            print(f"\n❌ Error during evaluation: {e}")
+            traceback.print_exc()
+            return 1
 
 
 if __name__ == "__main__":
