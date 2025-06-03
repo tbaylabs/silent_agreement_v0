@@ -19,17 +19,19 @@ This document outlines the planned refactoring of the Silent Agreement evaluatio
 - [x] Clean up unused imports throughout codebase
 - [x] Remove empty `__init__.py` files or add proper exports
 
-### Phase 2: Entry Script Consolidation ✅ COMPLETED
+### Phase 2: Entry Script Consolidation (PARTIALLY COMPLETE)
 **Goal**: Replace 3 nearly-identical scripts with one unified script
 
-**Implemented Solution**:
-- Created unified `scripts/run_eval.py` with `--type` parameter
-- Supports all existing functionality with cleaner interface
-- Legacy scripts remain for backward compatibility
-- Updated `test_all_evals.py` → `quick_test_all_evals.py` for clarity
+**Progress**:
+- ✅ Created unified `scripts/run_eval.py` with `--type` parameter
+- ✅ Updated `test_all_evals.py` → `quick_test_all_evals.py` to use new script
+- ❌ Still need to remove the duplicate scripts:
+  - `scripts/run_base_eval.py`
+  - `scripts/run_effort_reasoning_eval.py`
+  - `scripts/run_token_reasoning_eval.py`
 
-**Benefits Achieved**:
-- Removed ~500 lines of duplicated code
+**Benefits** (will be achieved when duplicate scripts are removed):
+- Remove ~750 lines of duplicated code
 - Single point of maintenance
 - Consistent behavior across evaluation types
 - Easier to add new evaluation types
