@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to run quick tests for all three evaluation types simultaneously.
+Test script to run quick tests for all four evaluation types simultaneously.
 This helps verify that changes haven't broken any of the evaluation systems.
 """
 
@@ -70,7 +70,8 @@ def main():
     evaluations = [
         ("Base Evaluation", "base"),
         ("Effort Reasoning Evaluation", "effort"),
-        ("Token Reasoning Evaluation", "tokens")
+        ("Token Reasoning Evaluation", "tokens"),
+        ("Prompt Reasoning Evaluation", "prompt")
     ]
     
     # Check that we're in the right directory
@@ -81,7 +82,7 @@ def main():
     
     # Run evaluations in parallel
     results = []
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         # Submit all tasks
         future_to_eval = {
             executor.submit(run_eval, name, eval_type): name 
