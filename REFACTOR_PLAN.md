@@ -45,10 +45,10 @@ This document outlines the planned refactoring of the Silent Agreement evaluatio
    - Warning comments about expensive reasoning models
    - Initially only include `groq/llama-3.3-70b-versatile` for testing
 
-3. **Model-Specific Configurations**:
-   - OpenAI o-series: `reasoning_summary="detailed"`
-   - Gemini thinking models: Special config for `include_thoughts=True`
-   - Handled via Inspect AI's native support where possible
+3. **Model Configurations**:
+   - Always pass `reasoning_summary="detailed"` for all reasoning evals
+   - Models that don't support it will ignore the parameter
+   - Gemini thinking models: May need special handling for `include_thoughts=True` (test first with Inspect AI defaults)
 
 **Benefits** (when complete):
 - Remove ~750 lines of duplicated code
