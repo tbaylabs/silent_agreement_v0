@@ -30,7 +30,7 @@ def validate_ooc_tokens(token_count: int, max_expected_tokens: int, condition: s
 
 @scorer(metrics=[sa_metrics()])
 def validator(# extractor_model_name: str = "anthropic/claude-3-5-haiku-20241022",
-              extractor_model_name: str = "groq/llama-3.3-70b-versatile"
+              extractor_model_name: str = "groq/meta-llama/llama-4-scout-17b-16e-instruct"
               ):
     """Creates a validator that checks answers for legibility and OOC compliance."""
     

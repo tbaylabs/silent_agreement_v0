@@ -12,7 +12,7 @@ from scripts.match_by_llm import match_by_llm
 
 
 @scorer(metrics=[])
-def reasoning_validator(extractor_model_name: str = "groq/llama-3.3-70b-versatile"):
+def reasoning_validator(extractor_model_name: str = "groq/meta-llama/llama-4-scout-17b-16e-instruct"):
     """Creates a validator for reasoning evaluations that checks answers for legibility."""
     
     # Load options once when creating scorer
