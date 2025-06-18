@@ -16,7 +16,7 @@ def load_options_lists() -> Dict[str, List[str]]:
     """
     # Get the path relative to the project root
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    options_file = os.path.join(project_root, 'dataset_generation', 'options_lists', 'options_lists.json')
+    options_file = os.path.join(project_root, 'dataset_generation', 'options_lists', 'options_lists_v1.json')
     
     with open(options_file, 'r', encoding='utf-8') as f:
         return json.load(f)

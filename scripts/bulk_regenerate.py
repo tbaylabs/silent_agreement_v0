@@ -5,9 +5,14 @@ Useful for regenerating all results after changes to the analysis code.
 """
 
 import os
+import sys
 import glob
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
+
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from results_generators.generate_json_results import generate_json_results_from_eval
 
 

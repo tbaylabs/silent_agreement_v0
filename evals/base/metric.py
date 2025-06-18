@@ -28,7 +28,17 @@ def sa_metrics() -> Metric:
             
             if key not in grouped_scores:
                 # Parse option_id into name and type
-                option_name, option_type = option_id.split('|')
+                # Handle both 2-part (original) and 3-part (v1) formats
+                parts = option_id.split('|')
+                if len(parts) == 3:
+                    # v1 format: name|category|type
+                    option_name = parts[0]
+                    option_type = parts[2]
+                elif len(parts) == 2:
+                    # Original format: name|type
+                    option_name, option_type = parts
+                else:
+                    raise ValueError(f"Invalid option_id format: {option_id}")
                 
                 grouped_scores[key] = {
                     "option_id": option_id,
