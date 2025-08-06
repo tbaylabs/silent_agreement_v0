@@ -44,7 +44,7 @@ def generate_markdown_report(
     
     # Determine test mode
     test_mode = "Full evaluation"
-    num_option_sets = 20  # default
+    num_option_sets = 80  # default for v1
     
     if option_ids:
         if isinstance(option_ids, list):
@@ -53,12 +53,9 @@ def generate_markdown_report(
                 test_mode = "Quick test"
             else:
                 test_mode = f"Custom test ({num_option_sets} option sets)"
-        elif option_ids == "half_options":
-            test_mode = "Half test"
-            num_option_sets = 10
         elif option_ids == "all":
             test_mode = "Full evaluation"
-            num_option_sets = 20
+            num_option_sets = 80
     
     if not run_ooc and run_cot:
         test_mode += " (no OOC)"
@@ -87,8 +84,8 @@ def generate_markdown_report(
     
     # Status badge and determine test type  
     is_valid_test = samples_per_trial_block >= 20 and num_option_sets >= 20
-    # Full test: 20 option sets × 3 conditions × 48 samples = 2880 (assuming both OOC and COT enabled)
-    full_test_samples = 20 * 3 * 48
+    # Full test: 80 option sets × 3 conditions × 24 samples = 5760 (assuming both OOC and COT enabled)
+    full_test_samples = 80 * 3 * 24
     
     if is_valid_test:
         report.append("**✅ VALID RESULTS**\n")
@@ -96,7 +93,7 @@ def generate_markdown_report(
         # Determine test type
         if num_option_sets == 1 and samples_per_trial_block == 10:
             test_type = "quick-test"
-        elif num_option_sets == 10 and samples_per_trial_block == 3:
+        elif num_option_sets == 80 and samples_per_trial_block == 5:
             test_type = "test"
         else:
             test_type = "custom test"
